@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<meta name="viewport" content="width=device-width">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/syntax_default.css">
+<link rel="shortcut icon" type="image/png" href="/assets/img/favicon.ico">
+<link crossorigin="anonymous" media="all" integrity="sha512-uhAd27cNiLn0VE2GVEVUN8D5zW0o7s0QTnCGMnJZkL2HqN9/LwHDi4ndTPJH0upUQHYl/8QF6cwbOYp/KIzlJQ==" rel="stylesheet" href="https://github.githubassets.com/assets/github-be4e45349cf088df7a6636f437c0a167.css" />
+<script defer src="/assets/js/all.min.js"></script>
+<!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+
+<title> | A Gentle Introduction to Bayesian Analysis with Applications to QuantCrit</title>
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>A Gentle Introduction to Bayesian Analysis with Applications to QuantCrit<a href="https://github.com/btskinner/bayes_workshop" class="iconlink">
+	      <i class="fab fa-github fa-sm"></i></a></h1>
+	<h2 class="thin"></h2>
+	<p>A workshop to introduce quantitatively-trained researchers to the Bayesian
+paradigm with applications to QuantCrit
+</p>
+	<!-- side / top bar menu -->
+	<h2 class="thin">
+	  <a href="/">Welcome</a></br>
+    <a href="/setup/">Setup</a></br>
+	  <a href="/about/">About</a></br>
+	</h2>
+      </header>
+
+      <section>
+	<h1>Setup</h1>
+	
+
+	<p>In preparation for our workshop, you’ll want to install a few free, open source
+programs and libraries on the laptop you’ll be using. Specifically, you’ll need:</p>
+
+<ol>
+  <li>R (the programming language we’ll be using)</li>
+  <li>RStudio (the application we’ll use to work with R)</li>
+</ol>
+
+<p>You can find links to download both R and RStudio at the Posit website:
+<a href="https://posit.co/download/rstudio-desktop/">posit.co/download/rstudio-desktop/</a></p>
+
+<p><img src="/assets/img/posit.png" alt="" class="centerpic" /></p>
+
+<h2 id="installing-r">Installing R</h2>
+
+<p>The link on the Posit page will take you to the CRAN (Comprehensive R Archive
+Network) homepage.</p>
+
+<p><img src="/assets/img/cran_home.png" alt="" class="centerpic" /></p>
+
+<p>You’ll want to download the correct version of R depending on your computer’s
+operation system.</p>
+
+<h3 id="windows">Windows</h3>
+
+<p>For Windows/PC, first click on the <em>base</em> link:</p>
+
+<p><img src="/assets/img/cran_windows.png" alt="" class="centerpic" /></p>
+
+<p>On the next page, click the large top link:</p>
+
+<p><img src="/assets/img/cran_windows_2.png" alt="" class="centerpic" /></p>
+
+<p>Follow all instructions to install R as you would a normal program.</p>
+
+<h4 id="rtools">Rtools</h4>
+
+<p>For Windows/PC machines, you’ll also want to install Rtools. From the original
+Windows page, click on the <em>Rtools</em> link:</p>
+
+<p><img src="/assets/img/cran_rtools.png" alt="" class="centerpic" /></p>
+
+<p>On the next page, click on the link in the middle of the page to download the
+<em>rtools</em> installer.</p>
+
+<p><img src="/assets/img/cran_rtools_2.png" alt="" class="centerpic" /></p>
+
+<p>Follow all instructions to install Rtools as you would a normal program.</p>
+
+<h3 id="macos">MacOS</h3>
+
+<p><img src="/assets/img/cran_mac.png" alt="" class="centerpic" /></p>
+
+<p>For MacOS, choose the version that matches your chip type: Apple Silicon (newer)
+or Intel (older). If you are unsure, click the Apple icon in the upper left part
+of your toolbar and click on the <em>About this Mac</em> link. The information about
+your <em>processor</em> should tell you.</p>
+
+<p>Follow all instructions to install R as you would a normal application.</p>
+
+<h3 id="linux">Linux</h3>
+
+<p>Let’s be honest: if you run Linux on your machine, you probably don’t need these
+instructions!</p>
+
+<h1 id="r-libraries">R libraries</h1>
+
+<p>You will need the following R libraries for this workshop:</p>
+
+<ul>
+  <li>tidyverse</li>
+  <li>brms</li>
+</ul>
+
+<p>Once you’ve installed R and RStudio, you can paste the following in the RStudio console:</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">install.packages</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="s2">"tidyverse"</span><span class="p">,</span><span class="s2">"brms"</span><span class="p">),</span><span class="w"> </span><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<h1 id="final-notes">Final notes</h1>
+
+<p>If you’ve installed R or RStudio in the past, we recommend downloading the
+latest versions of each. If this is your first time downloading either, you will
+automatically download the latest versions.</p>
+
+<p>If you’re having problems or errors, try restarting your computer first. If that
+doesn’t work or you need help with the installation process, please contact Ben
+at btskinner <at> coe <dot> ufl <dot> edu to try to find some time at ASHE to
+meet to troubleshoot.</dot></dot></at></p>
+
+
+
+	<!-- <p> -->
+	<!--   Updated:  -->
+	<!-- </p> -->
+      </section>
+      <footer>
+        <p>
+  Benjamin Skinner</br>  
+  Assistant Professor</br>
+  <a href="https://www.btskinner.io" class="iconlink" alt="Personal website">
+    <i class="fas fa-home fa-lg"></i></a> | 
+  <a href="https://github.com/btskinner" class="iconlink" alt="Github
+								profile">
+    <i class="fab fa-github fa-lg"></i></a> |
+  <a href="https://twitter.com/btskinner" class="iconlink" alt="Twitter profile">
+    <i class="fab fa-twitter fa-lg"></i></a>
+</p>
+<p>
+  <small>
+    <a href="https://pages.github.com">GitHub Pages</a> |
+    <a href="https://github.com/orderedlist/minimal">Theme</a> |
+    <a href="/releases/">Releases</a>
+  </small>
+</p>
+
+      </footer>
+    </div>
+
+    <!-- load Javascript if page requires it -->
+    
+    
+    
+
+  </body>
+</html>
