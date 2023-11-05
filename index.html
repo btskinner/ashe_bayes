@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<meta name="viewport" content="width=device-width">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/syntax_default.css">
+<link rel="shortcut icon" type="image/png" href="/assets/img/favicon.ico">
+<link crossorigin="anonymous" media="all" integrity="sha512-uhAd27cNiLn0VE2GVEVUN8D5zW0o7s0QTnCGMnJZkL2HqN9/LwHDi4ndTPJH0upUQHYl/8QF6cwbOYp/KIzlJQ==" rel="stylesheet" href="https://github.githubassets.com/assets/github-be4e45349cf088df7a6636f437c0a167.css" />
+<script defer src="/assets/js/all.min.js"></script>
+<!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+
+<title> | A Gentle Introduction to Bayesian Analysis with Applications to QuantCrit</title>
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>A Gentle Introduction to Bayesian Analysis with Applications to QuantCrit<a href="https://github.com/btskinner/bayes_workshop" class="iconlink">
+	      <i class="fab fa-github fa-sm"></i></a></h1>
+	<h2 class="thin"></h2>
+	<p>A workshop to introduce quantitatively-trained researchers to the Bayesian
+paradigm with applications to QuantCrit
+</p>
+	<!-- side / top bar menu -->
+	<h2 class="thin">
+	  <a href="/">Welcome</a></br>
+    <a href="/setup/">Setup</a></br>
+	  <a href="/about/">About</a></br>
+	</h2>
+      </header>
+
+      <section>
+	<h1>Welcome!</h1>
+	
+
+	<p>Welcome to the ASHE 2023 workshop, <em>A Gentle Introduction to Bayesian Analysis
+with Applications to QuantCrit</em>. This workshop will introduce
+quantitatively-trained researchers to the Bayesian paradigm. Participants will
+learn through short lecture and by implementing short example problems that
+focus on the unique benefits of Bayesian analysis in QuantCrit frameworks,
+particularly as applicable for small group inference and more readily
+interpretable estimates across impacted audiences.</p>
+
+<p>Before the workshop, please follow the instructions on the 
+<a href="/setup/">setup page</a> page to install the necessary software.</p>
+
+<h1 id="tentative-schedule">Tentative Schedule</h1>
+
+<h2 id="1-theoretical-underpinnings">1. Theoretical underpinnings</h2>
+
+<p><em>This section will introduce the concepts behind Bayesian inference.
+Facilitators will lead discussion using slides with opportunity for participant
+questions and comments.</em></p>
+
+<p>Time: ~30-35 min</p>
+
+<p><strong>Topics</strong></p>
+
+<ol>
+  <li><strong>Conditional probability / Bayes Theorem</strong><br />
+<em>Description:</em> We will quickly derive Bayes Theorem from the decomposition of
+joint probability into conditional probabilities (3 lines of math. . . we
+promise!), focusing mostly on intuition. This is a very short bit of math that
+should be straightforward to those with regression training, but is easy to
+follow regardless.</li>
+  <li><strong>Priors, likelihoods, posteriors</strong><br />
+<em>Description:</em> We will discuss the three key components of a Bayesian analysis —
+priors, likelihoods, and posteriors — in terms of their respective mathematical
+and conceptual meanings in Bayesian inference.</li>
+  <li><strong>Interpretation</strong><br />
+<em>Description:</em> We will examine the key differences between Bayesian and
+frequentist output (parameters are random compared to data are random). Again,
+the discussion will be high level and mostly focused on how Bayesian results
+come as full distributions instead of point estimates with standard errors.</li>
+</ol>
+
+<h2 id="2-example-analysis">2. Example analysis</h2>
+
+<p><em>This section will guide participants through a hands-on data analysis,
+following the facilitator’s demonstration on their own computers. Code and data
+will be provided through this website created for the workshop. Extra facilitators
+will move throughout the room to help participants with technical issues that
+may arise. Work will follow the I do / we do / you do strategy and allow
+participants the opportunity to both work on their own computers and with each
+other.</em></p>
+
+<p>Time: ~2 hours 30 min (including time for a short break)</p>
+
+<p><strong>Topics</strong></p>
+
+<p>For this analysis example, we will use publicly available data relevant to
+higher education. The plan will be to use a couple of examples:</p>
+
+<ul>
+  <li>One state-level analysis using US Census data with only 51 (states + DC)
+observations, a tough data set to use with frequentist tools due to its small
+number observations.</li>
+  <li>One student-level analysis using NCES data (HSLS09) that allows for the
+estimation of heterogeneity by race/ethnicity and gender and presentation of
+results in a more readily-interpretable manner that does not rely on
+deficit-oriented comparisons.</li>
+</ul>
+
+<!-- These examples have been chosen for time (they won’t take long to run) and their -->
+<!-- utility in demonstrating the following data analysis processes: -->
+
+<!-- 1. Regression  -->
+<!--    1. Simple -->
+<!--    2. Random intercepts -->
+<!--    3. Random slopes  -->
+<!-- 2. Model checking -->
+<!-- 3. Posterior distribution manipulation  -->
+<!-- 4. Posterior predictive distributions -->
+
+<h2 id="4-applications">4. Applications</h2>
+<p><em>This section will be primarily discussion based.</em></p>
+
+<p>Time: ~15 min</p>
+
+<p><strong>Topics</strong></p>
+
+<p>As motivated by the example analyses, we will close the session by covering
+potential use cases for Bayesian analyses that make them preferable over
+frequentist methods in some situations. The idea is that these will be discussed
+during the examples, but we will conclude by reiterating these points as well as
+opening up the room for questions and discussion. In particular, we will focus
+on the promise that Bayesian analyses have in supporting QuantCrit analytic
+frameworks:</p>
+
+<ol>
+  <li>Ability to provide estimates using small data sets</li>
+  <li>Ability to provide estimates for small groups that otherwise might be dropped or aggregated</li>
+  <li>Provide estimates that are more easily interpretable by stakeholders, data
+owners, and participants with the purpose of supporting actionable, antiracist,
+social justice-oriented policy</li>
+</ol>
+
+
+
+	<!-- <p> -->
+	<!--   Updated:  -->
+	<!-- </p> -->
+      </section>
+      <footer>
+        <p>
+  Benjamin Skinner</br>  
+  Assistant Professor</br>
+  <a href="https://www.btskinner.io" class="iconlink" alt="Personal website">
+    <i class="fas fa-home fa-lg"></i></a> | 
+  <a href="https://github.com/btskinner" class="iconlink" alt="Github
+								profile">
+    <i class="fab fa-github fa-lg"></i></a> |
+  <a href="https://twitter.com/btskinner" class="iconlink" alt="Twitter profile">
+    <i class="fab fa-twitter fa-lg"></i></a>
+</p>
+<p>
+  <small>
+    <a href="https://pages.github.com">GitHub Pages</a> |
+    <a href="https://github.com/orderedlist/minimal">Theme</a> |
+    <a href="/releases/">Releases</a>
+  </small>
+</p>
+
+      </footer>
+    </div>
+
+    <!-- load Javascript if page requires it -->
+    
+    
+    
+
+  </body>
+</html>
