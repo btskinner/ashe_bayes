@@ -1,0 +1,51 @@
+title: "A Gentle Introduction to Bayesian Analysis with Applications to QuantCrit"
+baseurl: ""
+description: |
+  A workshop to introduce quantitatively-trained researchers to the Bayesian
+  paradigm with applications to QuantCrit
+repo: https://github.com/btskinner/ashe_bayes
+zip: https://github.com/btskinner/ashe_workshop/zipball/ashe_bayes
+
+scripts: scripts
+data: data
+modules: modules
+pdf: assets/pdf
+img: assets/img
+
+# for github metadata (releases)
+repository: btskinner/ashe_bayes
+
+contact:
+  name: Benjamin Skinner
+  title: Assistant Professor of Higher Education and Policy
+  shorttitle: Assistant Professor
+  school: University of Florida
+  github: 
+    name: btskinner
+    url: https://github.com/btskinner
+  url: https://www.btskinner.io
+  email: btskinner@coe.ufl.edu
+  twitter: https://twitter.com/btskinner
+
+# misc opts
+theme: jekyll-theme-minimal
+syntax: default
+mapstyle: light-v9
+mathjax: true
+future: true
+
+# files / directories to exclude when building
+exclude: ["_modules/*.Rmd", README.md, kbuild.sh, Gemfile, Gemfile.lock, head.tex]
+
+# collections
+collections:
+  lessons:
+    output: true
+    permalink: /:collection/:path
+  assignments:
+    output: true
+    permalink: /:collection/:path
+  supplemental:
+    output: true
+    permalink: /:collection/:path
+  
