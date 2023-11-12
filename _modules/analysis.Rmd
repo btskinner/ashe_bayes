@@ -1,0 +1,31 @@
+---
+layout: module
+title: Analytic Examples
+subtitle: |
+  | _A Gentle Introduction to Bayesian Analysis with Applications to QuantCrit_
+  | ASHE Workshop
+date: 18 November 2023
+author: | 
+  | Alberto Guzman-Alvarez
+  | Taylor Burtch 
+  | Benjamin Skinner
+order: 1
+category: module
+links:
+  script: analysis.R
+  pdf: analysis.pdf
+output:
+  md_document:
+    variant: gfm
+    preserve_yaml: true
+header-includes:
+  - \usepackage{amsmath}  
+---
+
+<!-- 1. Regression  -->
+<!--    1. Simple -->
+<!--    2. Random intercepts -->
+<!--    3. Random slopes  -->
+<!-- 2. Model checking -->
+<!-- 3. Posterior distribution manipulation  -->
+<!-- 4. Posterior predictive distributions -->

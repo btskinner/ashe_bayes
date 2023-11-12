@@ -76,7 +76,7 @@ You will need the following R libraries for this workshop:
 Once you've installed R and RStudio, you can paste the following in the RStudio console:
 
 ```r
-install.packages(c("tidyverse","brms"), dependencies = TRUE)
+install.packages(c("tidyverse","brms","haven","shinystan","tidybayes"), dependencies = TRUE)
 ```
 
 # Final notes
@@ -87,6 +87,6 @@ automatically download the latest versions.
 
 If you're having problems or errors, try restarting your computer first. If that
 doesn't work or you need help with the installation process, please contact Ben
-at btskinner <at> coe <dot> ufl <dot> edu to try to find some time at ASHE to
+at btskinner \<at\> coe \<dot\> ufl \<dot\> edu to try to find some time at ASHE to
 meet to troubleshoot.
 
