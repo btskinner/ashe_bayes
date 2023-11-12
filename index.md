@@ -57,28 +57,13 @@ Time: ~2 hours 30 min (including time for a short break)
 **Topics**
 
 For this analysis example, we will use publicly available data relevant to
-higher education. The plan will be to use a couple of examples:
+higher education. The plan will be to use a reduced version of the High School
+Longitudinal Study of 2009 (HSLS09) to perform increasingly complex regression
+analyses. We will perform various model checks and ways of presenting the
+results. Throughout, we will attend to the ways Bayesian analyses can support a
+critical approach to quantitative work.
 
-- One state-level analysis using US Census data with only 51 (states + DC)
-  observations, a tough data set to use with frequentist tools due to its small
-  number observations.
-- One student-level analysis using NCES data (HSLS09) that allows for the
-  estimation of heterogeneity by race/ethnicity and gender and presentation of
-  results in a more readily-interpretable manner that does not rely on
-  deficit-oriented comparisons.
-
-<!-- These examples have been chosen for time (they won’t take long to run) and their -->
-<!-- utility in demonstrating the following data analysis processes: -->
-
-<!-- 1. Regression  -->
-<!--    1. Simple -->
-<!--    2. Random intercepts -->
-<!--    3. Random slopes  -->
-<!-- 2. Model checking -->
-<!-- 3. Posterior distribution manipulation  -->
-<!-- 4. Posterior predictive distributions -->
-
-## 4. Applications
+## 3. Applications
 _This section will be primarily discussion based._
 
 Time: ~15 min
