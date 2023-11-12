@@ -1,2 +1,5 @@
+# .gitignore
+
 _site/
+_site_dev/
 .DS_Store

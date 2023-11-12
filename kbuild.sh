@@ -21,7 +21,6 @@ usage()
     [-o]        Directory where pdf versions of modules should go
     [-s]        Directory where purled scripts files should go
     [-d]        Development version of site (local *_dev)
-    [-c]        Output directory for course assignments, data, modules, and scripts
     [-v]        Render / build verbosely (optional flag)
 
  EXAMPLES:
@@ -36,7 +35,6 @@ usage()
  i = _modules
  o = modules
  s = scripts
- c = ../<dir name>_participant
  d = 0 (create actual site)
  b = 0 (nothing)
  v = 0 (knit/build quietly)
@@ -51,7 +49,6 @@ o="modules"
 s="scripts"
 d=0
 b=0
-c=0
 v=0
 
 knit_q="TRUE"
@@ -65,10 +62,10 @@ pandoc_opts="-V geometry:margin=1in --highlight-style tango --pdf-engine=xelatex
 pandoc_opts+="-V colorlinks=true -V linkcolor=blue -V urlcolor=blue -V links-as-notes -H head.tex"
 
 # sed
-sed_opts_1="s/\/bayes_workshop\/assets/..\/assets/g; s/\/bayes_workshop\/modules/..\/modules/g; s/\/bayes_workshop\/figures/..\/figures/g;"
-sed_opts_2="s/..\/assets/.\/assets/g; s/..\/modules/https:\/btskinner.io\/bayes_workshop\/modules/g; s/<img src=\"\(\.\.\/figures\/.*\.png\)\".* width=\"100%\" \/>/\!\[\]\(${i}\/\1\)/g"
+sed_opts_1="s/\/ashe_bayes\/assets/..\/assets/g; s/\/ashe_bayes\/modules/..\/modules/g; s/\/ashe_bayes\/figures/..\/figures/g;"
+sed_opts_2="s/..\/assets/.\/assets/g; s/..\/modules/https:\/btskinner.io\/ashe_bayes\/modules/g; s/<img src=\"\(\.\.\/figures\/.*\.png\)\".* width=\"100%\" \/>/\!\[\]\(${i}\/\1\)/g"
 
-while getopts "hm:i:o:s:dbcv" opt;
+while getopts "hm:i:o:s:dbv" opt;
 do
     case $opt in
 	h)
@@ -76,7 +73,7 @@ do
 	    exit 1
 	    ;;
 	m)
-	    l=$OPTARG 
+	    m=$OPTARG
 	    ;;
 	i)
 	    i=$OPTARG
@@ -92,9 +89,6 @@ do
 	    ;;
 	b)
 	    b=1
-	    ;;
-	c)
-	    c=1
 	    ;;
 	v)
 	    v=1
@@ -183,9 +177,9 @@ if [[ $knit_modules == 1 ]]; then
 	    fi
 	    # purl
 	    Rscript -e "knitr::purl('$f', documentation = 0, quiet = $knit_q)" 2>&1 > /dev/null
-	    printf "     $s/$l.R\n"
+	    printf "     $s/$m.R\n"
 	    # more than one line after removing \n? mv to scripts directory : rm
-	    [[ $(tr -d '\n' < ${l}.R | wc -c) -ge 1 ]] && mv ${l}.R $s/${l}.R || rm ${l}.R
+	    [[ $(tr -d '\n' < ${m}.R | wc -c) -ge 1 ]] && mv ${m}.R $s/${m}.R || rm ${m}.R
 	fi
     else 
 	for file in ${i}/*.Rmd
@@ -224,28 +218,6 @@ if [[ $knit_modules == 1 ]] || [[ $build_site == 1 ]]; then
     printf "  Built site ==>\n"
     printf "     config file:   $config_yml\n"
     printf "     location:      $site_path\n"
-fi
-
-# ==============================================================================
-# MOVE FILES TO PARTICIPANT REPO
-# ==============================================================================
-
-if [ $c == 1 ]; then
-    printf "\n[ Copying files for participant repos... ]\n\n"
-    # make directory if it doesn't exist
-    mkdir -p $participant_repo/data $participant_repo/modules
-    # move files
-    printf "  - README.md\n"
-    cp _participant_README.md $participant_repo/README.md
-    printf "  - .gitignore\n"
-    cp .participant_gitignore $participant_repo/.gitignore
-    printf "  - Data\n"
-    cp -r data $participant_repo
-    printf "  - Modules\n"
-    cp modules/README.md $participant_repo/modules/README.md
-    cp modules/*.pdf $participant_repo/modules
-    printf "  - Scripts\n"
-    cp -r scripts $participant_repo
 fi
 
 # ==============================================================================
