@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<meta name="viewport" content="width=device-width">
+<link rel="stylesheet" href="/ashe_bayes/assets/css/style.css">
+<link rel="stylesheet" href="/ashe_bayes/assets/css/syntax_default.css">
+<!-- <link rel="shortcut icon" type="image/png" href="/ashe_bayes/assets/img/favicon.ico"> -->
+<link crossorigin="anonymous" media="all" integrity="sha512-uhAd27cNiLn0VE2GVEVUN8D5zW0o7s0QTnCGMnJZkL2HqN9/LwHDi4ndTPJH0upUQHYl/8QF6cwbOYp/KIzlJQ==" rel="stylesheet" href="https://github.githubassets.com/assets/github-be4e45349cf088df7a6636f437c0a167.css" />
+<script defer src="/ashe_bayes/assets/js/all.min.js"></script>
+<!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+
+<title> | A Gentle Introduction to Bayesian Analysis with Applications to QuantCrit</title>
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>A Gentle Introduction to Bayesian Analysis with Applications to QuantCrit<a href="https://github.com/btskinner/ashe_bayes" class="iconlink">
+	      <i class="fab fa-github fa-sm"></i></a></h1>
+	<h2 class="thin"></h2>
+	<p>A workshop to introduce quantitatively-trained researchers to the Bayesian
+paradigm with applications to QuantCrit
+</p>
+	<!-- side / top bar menu -->
+	<h2 class="thin">
+	  <a href="/ashe_bayes/">Welcome</a></br>
+    <a href="/ashe_bayes/setup/">Setup</a></br>
+    <a href="/ashe_bayes/modules/">Modules</a></br>
+	  <a href="/ashe_bayes/about/">About</a></br>
+	</h2>
+      </header>
+
+      <section>
+	<h1>Theoretical Underpinnings</h1>
+	
+
+	
+<p>
+  
+  <a href="/ashe_bayes/assets/pdf/theory.pdf"
+     class="iconlink" download title="Get PDF of modules">
+  <i class="far fa-file-pdf fa-2x"></i>
+  </a>
+  
+  &nbsp;&nbsp;
+  
+  
+  
+  
+</p>
+
+
+<p>Bayesian statistics is all about probabilities. Before jumping into our hands-on
+coding activity, we’ll spend just a few minutes discussing the basic probability
+relationships underlying Bayesian statistical analysis.</p>
+
+<h1 id="a-little-bit-of-probability">A little bit of probability</h1>
+
+<p>For Bayesian statistics, there are three basic probability types that are useful
+to know, both as they are defined and as they relate to one another.</p>
+
+<h3 id="probability-types">Probability types</h3>
+<ul>
+  <li>Marginal probability: $P(A)$</li>
+  <li>Joint probability: $P(A,B)$</li>
+  <li>Conditional probability: $P(A\mid B)$</li>
+</ul>
+
+<p>When a <strong>joint probability</strong> is comprised of independent variables — like coin
+flips — we can simply decompose it into the product of the <strong>marginal
+probabilities</strong>:</p>
+
+\[P(A,B) = P(A)P(B)\]
+
+<p>However, if one set of variables depend on the other set, then it’s not quite as
+straightforward. An example of this might be: what are your odds of correctly
+guessing the correct number between 1 and 10 after you’ve already heard <em>X</em>
+wrong guesses (your odds change depending on how many incorrect guesses you get
+to hear).</p>
+
+<p>When there is <em>conditional dependence</em>, then the <strong>joint probability</strong>
+is the <strong>conditional probability</strong> of the first variable, <em>A</em>, times the
+<strong>marginal probability</strong> of the second variable, <em>B</em>:</p>
+
+\[P(A,B) = P(A\mid B)P(B)\]
+
+<h2 id="bayes-theorem">Bayes Theorem</h2>
+
+<p>Knowing these relationships, we can quickly derive <strong>Bayes’ Theorem</strong>, which is:</p>
+
+\[P(A\mid B) = \frac{P(B\mid A)P(A)}{P(B)}\]
+
+<p><em>Derived</em>:</p>
+
+\[\begin{aligned}
+P(A,B) &amp;= P(A,B) &amp;&amp; \text{identity} \\
+P(A\mid B)P(B) &amp;= P(B\mid A)P(A) &amp;&amp; \text{condition for both A and B} \\
+P(A\mid B) &amp;= \frac{P(B\mid A)P(A)}{P(B)} &amp;&amp; \text{divide by P(B)}
+\end{aligned}\]
+
+<p>Okay great! But what do we do with this? How exactly is Bayes’ Theorem useful?</p>
+
+<h1 id="priors-likelihoods-posteriors">Priors, likelihoods, posteriors</h1>
+
+<p>Bayes’ Theorem represents a way to incorporate prior information into current
+probability calculations. We don’t have to pretend we’re brand new here — we
+know things! Bayes gives us a formal way to use this knowledge.</p>
+
+<p>To make this interpretation of Bayes a little clearer, let’s change the notation
+just a bit. Instead of <em>A</em> and <em>B</em>, which are vague, we’ll use <em>X</em> and $\theta$:</p>
+
+<ul>
+  <li><em>X</em>: knowns (e.g., data)</li>
+  <li>$\theta$: unknowns (e.g., probabilities/parameters)</li>
+</ul>
+
+<p>which gives us,</p>
+
+\[P(\theta\mid X) = \frac{P(X\mid \theta)P(\theta)}{P(X)}\]
+
+<p>In most applied work, we can drop $P(X)$, which leaves us,</p>
+
+\[\underbrace{P(\theta\mid X)}_{posterior} \propto 
+\underbrace{P(X\mid \theta)}_{likelihood} \cdot \underbrace{P(\theta)}_{prior}\]
+
+<p>which is read as, <em>the <strong>posterior</strong> is proportional to the <strong>likelihood</strong> times the
+<strong>prior</strong>.</em></p>
+
+<ul>
+  <li><strong>Prior</strong>: $P(\theta)$</li>
+  <li><strong>Likelihood</strong>: $P(X\mid\theta)$</li>
+  <li><strong>Posterior</strong>: $P(\theta\mid X)$</li>
+</ul>
+
+<p>In plain language, we have existing beliefs about $P(\theta)$ that we modify
+with data, <em>X</em>, to produce new beliefs, $P(\theta \mid X)$. How much our
+existing beliefs change depends on a combination of how strongly we hold them.
+If we have strong prior beliefs, no data will really change them — our beliefs
+won’t be very different. Conversely, if we have weak prior beliefs, our updated
+beliefs will be mostly a function of what we observe in our data.</p>
+
+<h1 id="comparison-to-frequentist-statistics">Comparison to frequentist statistics</h1>
+
+<p>Most quantitative work in education (and in social sciences more generally)
+falls under the frequentist paradigm. There are historical reasons for this,
+both philosophical and technological. Philosophically, Bayesian approaches have
+been accused of being too subjective (the Bayesian retort is that frequentist
+approaches contain subjective elements as well — they just aren’t formally
+incorporated into the analysis). Technologically, Bayesian posteriors can be
+difficult to directly compute except for very simple (read: boring) problems.
+It’s only been with the rise of modern computing power that Bayesian approaches
+for interesting applied problems have been possible.</p>
+
+<p>Briefly, for those trained in frequestist (likely econometric) paradigm, here
+are a few differences between frequentist and Bayesian statistical approaches to
+applied work:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left"> </th>
+      <th style="text-align: left">Frequentist</th>
+      <th style="text-align: left">Bayesian</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><em>X</em> (Data)</td>
+      <td style="text-align: left">Random</td>
+      <td style="text-align: left">Fixed</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">$\theta$ (Parameters)</td>
+      <td style="text-align: left">Fixed</td>
+      <td style="text-align: left">Random</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">$\hat{\theta}$ (Output)</td>
+      <td style="text-align: left">Single value</td>
+      <td style="text-align: left">Distribution of values</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Error for $\hat{\theta}$</td>
+      <td style="text-align: left">Computed using asymptotic formula</td>
+      <td style="text-align: left">Computed directly from distribution</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Interpretation</td>
+      <td style="text-align: left">Values that make data most likely</td>
+      <td style="text-align: left">Most likely values given data</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Statistical significance</td>
+      <td style="text-align: left">Binary decision rules (e.g., <em>p</em> values)</td>
+      <td style="text-align: left">Direct probabilistic decision</td>
+    </tr>
+  </tbody>
+</table>
+
+<h1 id="applicability-to-quantcrit">Applicability to QuantCrit</h1>
+
+<p>Key benefits of Bayesian approach for applied QuantCrit analyses:</p>
+
+<ol>
+  <li>Clear incorporation / acknowledgment of prior (subject) beliefs</li>
+  <li>Ability to provide estimates using small data sets</li>
+  <li>Ability to provide estimates for small groups that otherwise might be dropped</li>
+  <li>Provide estimates that are more easily interpreted by stakeholders, data or
+aggregated owners, and participants with the purpose of supporting
+actionable, antiracist, social justice-oriented policy</li>
+</ol>
+
+
+
+
+	<!-- <p> -->
+	<!--   Updated: 18 November 2023 -->
+	<!-- </p> -->
+      </section>
+      <footer>
+        <p>
+  Benjamin Skinner</br>  
+  Assistant Professor</br>
+  <a href="https://www.btskinner.io" class="iconlink" alt="Personal website">
+    <i class="fas fa-home fa-lg"></i></a> | 
+  <a href="https://github.com/btskinner" class="iconlink" alt="Github
+								profile">
+    <i class="fab fa-github fa-lg"></i></a> |
+  <a href="https://twitter.com/btskinner" class="iconlink" alt="Twitter profile">
+    <i class="fab fa-twitter fa-lg"></i></a>
+</p>
+<p>
+  <small>
+    <a href="https://pages.github.com">GitHub Pages</a> |
+    <a href="https://github.com/orderedlist/minimal">Theme</a> |
+    <a href="/ashe_bayes/releases/">Releases</a>
+  </small>
+</p>
+
+      </footer>
+    </div>
+
+    <!-- load Javascript if page requires it -->
+    
+    
+    
+
+  </body>
+</html>

@@ -270,18 +270,9 @@ small { font-size: .8em; }
 .past_list li { list-style-type: none; font-size: 1.5em; }
 .past_list li:before { margin-left: -1em; content: "←  "; }
 
-.lessons { padding-left: 2em; }
-.lessons li { list-style-type: none; font-size: 1.5em; }
-.lessons li:before { margin-left: -1em; content: ">  "; }
-
-.supplemental { padding-left: 2em; }
-.supplemental li { list-style-type: none; font-size: 1.5em; }
-.supplemental li:before { margin-left: -1em; content: "+  "; }
-
-.assignments { padding-left: 2em; }
-.assignments li { list-style-type: none; font-size: 1.5em; }
-.assignments li.do:before { margin-left: -1em; content: "<  "; }
-.assignments li.rubric:before { margin-left: -1em; content: ">  "; }
+.modules { padding-left: 2em; }
+.modules li { list-style-type: none; font-size: 1.5em; }
+.modules li:before { margin-left: -1em; content: ">  "; }
 
 code { background-color: #f8f8f8; }
 
