@@ -1,31 +1,3 @@
----
-layout: module
-title: Analytic Examples
-subtitle: |
-  | _A Gentle Introduction to Bayesian Analysis with Applications to QuantCrit_
-  | ASHE Workshop
-date: 18 November 2023
-author: | 
-  | Alberto Guzman-Alvarez
-  | Taylor Burtch 
-  | Benjamin Skinner
-order: 1
-category: module
-links:
-  data: hsls_small.dta
-  script: analysis.R
-  pdf: analysis.pdf
-output:
-  md_document:
-    variant: gfm
-    preserve_yaml: true
-header-includes:
-  - \usepackage{amsmath}  
----
-```{r knitr, include = FALSE, purl = FALSE}
-source('knit_setup.R')
-```
-```{r header, include = FALSE, purl = TRUE}
 ################################################################################
 ##
 ## [ PROJ ] A Gentle Introduction to Bayesian Analysis with Applications
@@ -36,17 +8,13 @@ source('knit_setup.R')
 ##
 ################################################################################
 
-```
-```{r libraries}
 ## ---------------------------
 ## libraries
 ## ---------------------------
 
 libs <- c("tidyverse", "brms", "haven", "bayesplot")
 sapply(libs, require, character.only = TRUE)
-```
 
-```{r settings}
 ## ---------------------------
 ## settings
 ## ---------------------------
@@ -57,36 +25,22 @@ options(mc.cores=parallel::detectCores())
 ## set a seed so things stay the same
 my_seed <- 20231118
 
-```
 
-```{r, include = FALSE, purl = FALSE}
-## ---------------------------
-## input
-## ---------------------------
 
-## using Stata version of data so we have labels; need haven::read_dta()
-df <- read_dta(file.path("..", "data", "hsls_small.dta"))
-```
 
-```{r, eval = FALSE, purl = TRUE}
-## ---------------------------
-## input
-## ---------------------------
+## ## ---------------------------
+## ## input
+## ## ---------------------------
+## 
+## ## using Stata version of data so we have labels; need haven::read_dta()
+## df <- read_dta("hsls_small.dta")
 
-## using Stata version of data so we have labels; need haven::read_dta()
-df <- read_dta("hsls_small.dta")
-```
-
-```{r show}
 ## ---------------------------
 ## show data set
 ## ---------------------------
 
 df
-```
 
-```{r simple_reg}
-#| message: FALSE
 ## ---------------------------
 ## simple regression
 ## ---------------------------
@@ -97,30 +51,15 @@ fit <- brm(x4evratndclg ~ 1,
            family = bernoulli("logit"),
            seed = my_seed)
 
-```
-
-```{r summary_simple_reg}
-#| message: FALSE
-#| warning: FALSE
 
 ## show summary stats
 summary(fit)
-```
-```{r plot_simple_reg}
-#| message: FALSE
-#| warning: FALSE
-
 ## show distribution of intercept (our main parameter)
 mcmc_areas(fit, prob = 0.95, pars = "b_Intercept") +
   labs(
     title = "Posterior distribution",
     subtitle = "with median and 95% interval"
   )
-```
-
-```{r trace_simple_reg_1}
-#| message: FALSE
-#| warning: FALSE
 
 ## show trace of chains for intercept (our main parameter)
 color_scheme_set("mix-blue-pink")
@@ -131,11 +70,6 @@ mcmc_trace(fit |> as_draws(inc_warmup = TRUE),
     title = "Trace of posterior chains",
     subtitle = "Draws: 0 to 50"
   )
-```
-
-```{r trace_simple_reg_2}
-#| message: FALSE
-#| warning: FALSE
 
 ## show trace of chains for intercept (our main parameter)
 color_scheme_set("mix-blue-pink")
@@ -146,19 +80,11 @@ mcmc_trace(fit |> as_draws(inc_warmup = TRUE),
     title = "Trace of posterior chains",
     subtitle = "Draws: 500 to 2000"
   )
-```
-<!-- Posterior predictions -->
 
-<!-- 1. Regression  -->
-<!--    1. Simple -->
-<!--    2. Random intercepts -->
-<!--    3. Random slopes  -->
-<!-- 2. Model checking -->
-<!-- 3. Posterior distribution manipulation  -->
-<!-- 4. Posterior predictive distributions -->
+## convert to posterior prediction
+ppc_dens_overlay(y = fit$y,
+                 yrep = posterior_predict(fit, draws = 50))
 
-```{r, include = FALSE, purl = TRUE}
 ## -----------------------------------------------------------------------------
 ## end script
 ## -----------------------------------------------------------------------------
-```
