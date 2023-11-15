@@ -50,15 +50,39 @@ fit <- brm(college ~ 1,
 
 ## show summary stats
 summary(fit)
+
+## helper function: inverse logit
+inv_logit <- function(x) { 1 / (1 + exp(-x)) }
+
+## convert intercept value to probability scale
+inv_logit(1.12)
+
+## show trace of chains for intercept (our main parameter)
+color_scheme_set("mix-blue-pink")
+mcmc_trace(fit |> as_draws(inc_warmup = TRUE),
+           pars = "b_Intercept", n_warmup = 1000,
+           window = c(0, 50)) +
+  labs(
+    title = "Trace of posterior chains",
+    subtitle = "Draws: 0 to 50"
+  )
+
+## show trace of chains for intercept (our main parameter)
+color_scheme_set("mix-blue-pink")
+mcmc_trace(fit |> as_draws(inc_warmup = TRUE),
+           pars = "b_Intercept", n_warmup = 1000,
+           window = c(500, 2000)) +
+  labs(
+    title = "Trace of posterior chains",
+    subtitle = "Draws: 500 to 2000"
+  )
+
 ## show distribution of intercept (our main parameter)
 mcmc_areas(fit, prob = 0.95, pars = "b_Intercept") +
   labs(
     title = "Posterior distribution (log scale)",
     subtitle = "with median and 95% interval"
   )
-
-## helper function: inverse logit
-inv_logit <- function(x) { exp(-log(1 + exp(-x))) }
 
 ## show distribution of transformed intercept (our main parameter)
 ## using helper function
@@ -96,27 +120,6 @@ mcmc_areas(fit, prob = 0.95, pars = "b_Intercept",
   labs(
     title = "Posterior distribution (probability)",
     subtitle = "with median and 95% interval; prior: normal(0,20)",
-  )
-
-
-## show trace of chains for intercept (our main parameter)
-color_scheme_set("mix-blue-pink")
-mcmc_trace(fit |> as_draws(inc_warmup = TRUE),
-           pars = "b_Intercept", n_warmup = 1000,
-           window = c(0, 50)) +
-  labs(
-    title = "Trace of posterior chains",
-    subtitle = "Draws: 0 to 50"
-  )
-
-## show trace of chains for intercept (our main parameter)
-color_scheme_set("mix-blue-pink")
-mcmc_trace(fit |> as_draws(inc_warmup = TRUE),
-           pars = "b_Intercept", n_warmup = 1000,
-           window = c(500, 2000)) +
-  labs(
-    title = "Trace of posterior chains",
-    subtitle = "Draws: 500 to 2000"
   )
 
 ## ---------------------------
@@ -259,6 +262,7 @@ freq_g <- tibble(group = df_design$group,
 ## use patchwork to compare figures
 freq_g / bayes_g &
   theme_bw(base_size = 6)
+
 ## -----------------------------------------------------------------------------
 ## comparison
 ## -----------------------------------------------------------------------------

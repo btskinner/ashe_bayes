@@ -199,6 +199,9 @@ following:</p>
 <p>We have a couple of settings that will help us. First, we’ll take advantage of
 our computers’ multiple cores with <code class="language-plaintext highlighter-rouge">options(mc.cores=parallel::detectCores())</code>.</p>
 
+<p>Because the estimation of Bayesian models involve pseudorandom computational
+processes, we’ll set a seed so that we get the same results.</p>
+
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## ---------------------------</span><span class="w">
 </span><span class="c1">## settings</span><span class="w">
 </span><span class="c1">## ---------------------------</span><span class="w">
@@ -209,6 +212,12 @@ our computers’ multiple cores with <code class="language-plaintext highlighter
 </span><span class="c1">## set a seed so things stay the same</span><span class="w">
 </span><span class="n">my_seed</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">20231118</span><span class="w">
 </span></code></pre></div></div>
+
+<h2 id="data">Data</h2>
+
+<p>The data we’re using today is a simplified version of HSLS09. Observations with
+missing data have been dropped. We’re also not accounting for the weighting
+scheme used by NCES.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## ---------------------------</span><span class="w">
 </span><span class="c1">## input</span><span class="w">
@@ -240,6 +249,26 @@ our computers’ multiple cores with <code class="language-plaintext highlighter
 ## # ℹ 17,192 more rows
 </code></pre></div></div>
 
+<h2 id="simple-regression">Simple regression</h2>
+
+<p>As a first step, we’ll fit a regression of college attendance on a vector of
+ones (intercept only model). This will give us the average attendance across the
+full sample, with measure of uncertainty in the spread of the posterior
+distribution.</p>
+
+<p>With Bayesian models, we have to be a little more particular with our
+distributional assumptions. Since our outcomes fall into 0s and 1s, we should
+use a <a href="https://en.wikipedia.org/wiki/Bernoulli_distribution">Bernoulli
+distribution</a> with a logit
+link function for our likelihood in the <code class="language-plaintext highlighter-rouge">family</code> argument:</p>
+
+\[f(k;p) = p^k(1-p)^{1-k}\, \text{for}\, k \in {0,1}\]
+
+<p>We know our <em>k</em> values here (0 for no college attendance and 1 for attendance).
+Our unknown is <em>p</em>, the probability of attendance.</p>
+
+<h3 id="running-the-model">Running the model</h3>
+
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## -----------------------------------------------------------------------------</span><span class="w">
 </span><span class="c1">## simple regression: intercept only (average college-going rate)</span><span class="w">
 </span><span class="c1">## -----------------------------------------------------------------------------</span><span class="w">
@@ -250,6 +279,15 @@ our computers’ multiple cores with <code class="language-plaintext highlighter
            </span><span class="n">family</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bernoulli</span><span class="p">(</span><span class="s2">"logit"</span><span class="p">),</span><span class="w">
            </span><span class="n">seed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">my_seed</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
+
+<p>You should notice a few things. First, your model has to be compiled to a faster
+coding language. For short models, it can take longer to compile than to run,
+but for longer models, this isn’t the case. You can also save the models so that
+you don’t have recompile each time.</p>
+
+<p>Once it starts to run, you’ll see a lot of information about leapfrog steps,
+chains, warm-ups, and samples. We’ll discuss some of these pieces and what they
+mean in just a bit, but first we’ll take a look at the summary statistics.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## show summary stats</span><span class="w">
 </span><span class="n">summary</span><span class="p">(</span><span class="n">fit</span><span class="p">)</span><span class="w">
@@ -271,6 +309,119 @@ our computers’ multiple cores with <code class="language-plaintext highlighter
 ## scale reduction factor on split chains (at convergence, Rhat = 1).
 </code></pre></div></div>
 
+<p>The intercept value is approximately 1.12. Remembering that this is on the logit
+scale, we can covert this using an inverse logit transformation:</p>
+
+<p><strong>Logit</strong></p>
+
+\[ln(\frac{p}{1-p})\]
+
+<p><strong>Inverse logit</strong></p>
+
+\[\frac{1}{1 + e^{-x}}\]
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## helper function: inverse logit</span><span class="w">
+</span><span class="n">inv_logit</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="k">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nf">exp</span><span class="p">(</span><span class="o">-</span><span class="n">x</span><span class="p">))</span><span class="w"> </span><span class="p">}</span><span class="w">
+
+</span><span class="c1">## convert intercept value to probability scale</span><span class="w">
+</span><span class="n">inv_logit</span><span class="p">(</span><span class="m">1.12</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [1] 0.7539887
+</code></pre></div></div>
+
+<p>Approximately 75% of the sample attended college at some point. We also have an
+estimated error of approximately 0.02 (back on the log scale). So far, this
+seems much like you may be used seeing after fitting frequentist models. But
+what is <code class="language-plaintext highlighter-rouge">Rhat</code>, <code class="language-plaintext highlighter-rouge">Bulk_ESS</code>, and <code class="language-plaintext highlighter-rouge">Tail_ESS</code>? Further, what is the meaning of all
+the information in the <code class="language-plaintext highlighter-rouge">Draws</code>?</p>
+
+<h3 id="a-quick-note-on-how-we-actually-estimate-the-posterior">A quick note on how we actually estimate the posterior</h3>
+
+<p>In applied Bayesian work, the posterior distribution, which is proportional to
+the prior multiplied by the likelihood distributions, often doesn’t have a
+<strong>closed form solution</strong>. This just means we can’t solve for the posterior using
+analytic methods (e.g., algebraic equations). Instead, we are forced to sample
+from the posterior and build an empirical distribution of our best guesses. This
+is easier said than done because, remember, we don’t know the answer.</p>
+
+<p>Imagine I put you in a dark room and told you that I wanted you to be able to
+describe the space to me. I assume the floor generally slopes to a low point, so
+you’ll probably make your way there. That said, the room may have dips in the
+floor or weird corners. It also may be the size of a typical classroom or the
+size of a football field. And also, I don’t have infinite time or money for your
+to spend your time figuring it out. How do you explore the space in way that’s
+complete but also efficient?</p>
+
+<p>This is basically the problem facing applied Bayesian work. With the advent of
+modern computing, we have a number of approaches. We unfortunately don’t have
+time to get into the nuances, benefits, and drawbacks of various samplers. The
+main thing to know is that most make use of Markov chain Monte Carlo (MCMC)
+chains and, as a result, return multiple “guesses” of our unknown parameters.
+When we see the <code class="language-plaintext highlighter-rouge">Estimate</code> and <code class="language-plaintext highlighter-rouge">Est.Error</code> values in the results, these are
+summary statistics of a full distribution of results.</p>
+
+<p><em>Why multiple chains?</em>: Let’s go back to the room. If you only have so much time
+to explore the room, where you start may influence where you explore. You may
+not find the low point in the floor or you may get stuck in a corner. How do I
+know you are giving me an accurate account of the room? But if you can start
+multiple times in multiple places and end with similar results, that feels like
+evidence you are describing the space, or at least the main features. This is
+the logic behind running multiple chains.</p>
+
+<p>Let’s look at beginning of the chains with a <strong>trace plot</strong>, the first 50
+samples:</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## show trace of chains for intercept (our main parameter)</span><span class="w">
+</span><span class="n">color_scheme_set</span><span class="p">(</span><span class="s2">"mix-blue-pink"</span><span class="p">)</span><span class="w">
+</span><span class="n">mcmc_trace</span><span class="p">(</span><span class="n">fit</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">as_draws</span><span class="p">(</span><span class="n">inc_warmup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">),</span><span class="w">
+           </span><span class="n">pars</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"b_Intercept"</span><span class="p">,</span><span class="w"> </span><span class="n">n_warmup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1000</span><span class="p">,</span><span class="w">
+           </span><span class="n">window</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="m">50</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">labs</span><span class="p">(</span><span class="w">
+    </span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Trace of posterior chains"</span><span class="p">,</span><span class="w">
+    </span><span class="n">subtitle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Draws: 0 to 50"</span><span class="w">
+  </span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../figures/trace_simple_reg_1-1.png" width="100%" /></p>
+
+<p>Notice how the four chains start in very different places. But very quickly for
+this simple model they collectively <strong>converge</strong> to a similar area. Let’s look
+at the rest of the samples:</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## show trace of chains for intercept (our main parameter)</span><span class="w">
+</span><span class="n">color_scheme_set</span><span class="p">(</span><span class="s2">"mix-blue-pink"</span><span class="p">)</span><span class="w">
+</span><span class="n">mcmc_trace</span><span class="p">(</span><span class="n">fit</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">as_draws</span><span class="p">(</span><span class="n">inc_warmup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">),</span><span class="w">
+           </span><span class="n">pars</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"b_Intercept"</span><span class="p">,</span><span class="w"> </span><span class="n">n_warmup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1000</span><span class="p">,</span><span class="w">
+           </span><span class="n">window</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">500</span><span class="p">,</span><span class="w"> </span><span class="m">2000</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">labs</span><span class="p">(</span><span class="w">
+    </span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Trace of posterior chains"</span><span class="p">,</span><span class="w">
+    </span><span class="n">subtitle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Draws: 500 to 2000"</span><span class="w">
+  </span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../figures/trace_simple_reg_2-1.png" width="100%" /></p>
+
+<p>Because we purposefully start the chains in different spots, we shouldn’t think
+those early samples represent the posterior. We throw these out as <strong>warmup</strong>
+and only keep the later samples which are combined into our <strong>total post-warmup
+draws</strong>. In this model, we end up with 4,000 sample draws of our posterior.</p>
+
+<p>Seeing the consistent overlap or <strong>mixing</strong> of the chains, we feel we have a
+well-performing model (at least in terms of computation). The <code class="language-plaintext highlighter-rouge">Rhat</code> statistic
+gives us a more formal test of the ratio of between chain variance to within
+chain variance. <code class="language-plaintext highlighter-rouge">Rhat</code> measures below 1.1 suggest we have good mixture. The two
+ESS measures stand for <strong>Effective Sample Size</strong>. Due to the deterministic
+nature of our sampler (and most samplers), the draws in our sample distribution
+aren’t entirely independent. <code class="language-plaintext highlighter-rouge">Bulk_ESS</code> sample size gives us the overall
+effective sample size while <code class="language-plaintext highlighter-rouge">Tail_ESS</code> gives an estimate of effective sample
+size in the tails of the distribution.</p>
+
+<h3 id="plotting-the-posterior">Plotting the posterior</h3>
+
+<p>Since our Bayesian posterior represents a distribution of samples, let’s look at
+it graphically.</p>
+
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## show distribution of intercept (our main parameter)</span><span class="w">
 </span><span class="n">mcmc_areas</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span><span class="w"> </span><span class="n">prob</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.95</span><span class="p">,</span><span class="w"> </span><span class="n">pars</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"b_Intercept"</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w">
   </span><span class="n">labs</span><span class="p">(</span><span class="w">
@@ -281,10 +432,10 @@ our computers’ multiple cores with <code class="language-plaintext highlighter
 
 <p><img src="../figures/plot_simple_reg_logit-1.png" width="100%" /></p>
 
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## helper function: inverse logit</span><span class="w">
-</span><span class="n">inv_logit</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="k">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nf">exp</span><span class="p">(</span><span class="o">-</span><span class="nf">log</span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nf">exp</span><span class="p">(</span><span class="o">-</span><span class="n">x</span><span class="p">)))</span><span class="w"> </span><span class="p">}</span><span class="w">
+<p>As a quick trick, we’ll use the <code class="language-plaintext highlighter-rouge">transformation</code> argument and our <code class="language-plaintext highlighter-rouge">inv_logit()</code>
+function to see the posterior on the probability scale.</p>
 
-</span><span class="c1">## show distribution of transformed intercept (our main parameter)</span><span class="w">
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## show distribution of transformed intercept (our main parameter)</span><span class="w">
 </span><span class="c1">## using helper function</span><span class="w">
 </span><span class="n">mcmc_areas</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span><span class="w"> </span><span class="n">prob</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.95</span><span class="p">,</span><span class="w"> </span><span class="n">pars</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"b_Intercept"</span><span class="p">,</span><span class="w">
            </span><span class="n">transformation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="s2">"b_Intercept"</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">inv_logit</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w">
@@ -296,6 +447,12 @@ our computers’ multiple cores with <code class="language-plaintext highlighter
 
 <p><img src="../figures/plot_simple_reg_prob-1.png" width="100%" /></p>
 
+<h3 id="priors">Priors</h3>
+
+<p>What about priors? Don’t we have to set those? By default, <code class="language-plaintext highlighter-rouge">brm()</code> will choose a
+set of <strong>weakly informative</strong> priors based on the likelihood distribution you
+set. You can check this after the fact using <code class="language-plaintext highlighter-rouge">prior_summary()</code>.</p>
+
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## ---------------------------</span><span class="w">
 </span><span class="c1">## check prior</span><span class="w">
 </span><span class="c1">## ---------------------------</span><span class="w">
@@ -306,6 +463,9 @@ our computers’ multiple cores with <code class="language-plaintext highlighter
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Intercept ~ student_t(3, 0, 2.5)
 </code></pre></div></div>
+
+<p>Let’s change our prior to normal distribution with a wide variance (remember:
+we’re on a logit scale).</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## change to normal prior for comparison</span><span class="w">
 </span><span class="n">fit</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">brm</span><span class="p">(</span><span class="n">college</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w">
@@ -358,33 +518,26 @@ our computers’ multiple cores with <code class="language-plaintext highlighter
   </span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
-<p><img src="../figures/check_prior-1.png" width="100%" /></p>
+<p><img src="../figures/change_prior-1.png" width="100%" /></p>
 
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## show trace of chains for intercept (our main parameter)</span><span class="w">
-</span><span class="n">color_scheme_set</span><span class="p">(</span><span class="s2">"mix-blue-pink"</span><span class="p">)</span><span class="w">
-</span><span class="n">mcmc_trace</span><span class="p">(</span><span class="n">fit</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">as_draws</span><span class="p">(</span><span class="n">inc_warmup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">),</span><span class="w">
-           </span><span class="n">pars</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"b_Intercept"</span><span class="p">,</span><span class="w"> </span><span class="n">n_warmup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1000</span><span class="p">,</span><span class="w">
-           </span><span class="n">window</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="m">50</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w">
-  </span><span class="n">labs</span><span class="p">(</span><span class="w">
-    </span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Trace of posterior chains"</span><span class="p">,</span><span class="w">
-    </span><span class="n">subtitle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Draws: 0 to 50"</span><span class="w">
-  </span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
+<p>The posterior is largely the same. It may have taken slightly longer or shorter
+to run the sampler, but again, for this model it’s almost imperceptible. For
+more complex models, however, prior selection can be the difference between a
+model that converges and one that doesn’t. You can also be more specific with
+your priors. But for now, we’ll keep using the defaults.</p>
 
-<p><img src="../figures/trace_simple_reg_1-1.png" width="100%" /></p>
+<h3 id="posterior-check">Posterior check</h3>
 
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## show trace of chains for intercept (our main parameter)</span><span class="w">
-</span><span class="n">color_scheme_set</span><span class="p">(</span><span class="s2">"mix-blue-pink"</span><span class="p">)</span><span class="w">
-</span><span class="n">mcmc_trace</span><span class="p">(</span><span class="n">fit</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">as_draws</span><span class="p">(</span><span class="n">inc_warmup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">),</span><span class="w">
-           </span><span class="n">pars</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"b_Intercept"</span><span class="p">,</span><span class="w"> </span><span class="n">n_warmup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1000</span><span class="p">,</span><span class="w">
-           </span><span class="n">window</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">500</span><span class="p">,</span><span class="w"> </span><span class="m">2000</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w">
-  </span><span class="n">labs</span><span class="p">(</span><span class="w">
-    </span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Trace of posterior chains"</span><span class="p">,</span><span class="w">
-    </span><span class="n">subtitle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Draws: 500 to 2000"</span><span class="w">
-  </span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
+<p>Bayesians often talk about accurately modeling the <strong>data generating process</strong>.
+You can think about your model being a machine that, if accurately built and
+tuned, can be reversed to make predictions (new data) that look like what you
+observed. If posterior predictions look quite different from what you observed
+in your data, that’s evidence you don’t have a good model of the world that
+produced your data.</p>
 
-<p><img src="../figures/trace_simple_reg_2-1.png" width="100%" /></p>
+<p>We can check this by producing a number of predictions from our fitted model
+using <code class="language-plaintext highlighter-rouge">posterior_epred()</code> and comparing it to our empirical mean of college
+enrollment.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## ---------------------------</span><span class="w">
 </span><span class="c1">## posterior predictive check</span><span class="w">
@@ -401,6 +554,21 @@ our computers’ multiple cores with <code class="language-plaintext highlighter
 </code></pre></div></div>
 
 <p><img src="../figures/pp_check-1.png" width="100%" /></p>
+
+<p>Seeing that the distribution of our predictions $y^{rep}$ splits $y$, we have
+evidence that our machine/model is well specified.</p>
+
+<h2 id="speed-up-trick">Speed up trick</h2>
+
+<p>An unfortunate thing about Bayesian samplers is that they don’t scale well with
+data size. In some cases — such as our own — we can exploit connections
+between distributions and sufficient statistics to make our data matrix smaller
+and therefore sampler faster.</p>
+
+<p>A Bernoulli distribution (coin flip) can be thought of a binomial distribution
+(successes out of trials) in which there is only one trial. By collapsing our
+data to a single row of the number of students who went to college out of the
+total, we can rewrite our model and speed it up.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## -----------------------------------------------------------------------------</span><span class="w">
 </span><span class="c1">## speed up trick</span><span class="w">
@@ -445,6 +613,17 @@ our computers’ multiple cores with <code class="language-plaintext highlighter
 ## and Tail_ESS are effective sample size measures, and Rhat is the potential
 ## scale reduction factor on split chains (at convergence, Rhat = 1).
 </code></pre></div></div>
+
+<p>As we can see, we get the same results. We’ll use this speed up trick with our
+more complex model below.</p>
+
+<h2 id="multiple-regression-model-with-deep-interactions">Multiple regression model with deep interactions</h2>
+
+<p>In this model, we’ll interact our categorical indicators for race/ethnicity,
+gender, and poverty status. We’ll include main effects for each characteristic
+individually, but also random intercept adjustments for interactions for each
+group. These random effects will be especially important for providing estimates
+for small groups.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## -----------------------------------------------------------------------------</span><span class="w">
 </span><span class="c1">## multiple regression across groups</span><span class="w">
@@ -507,6 +686,26 @@ our computers’ multiple cores with <code class="language-plaintext highlighter
 ## scale reduction factor on split chains (at convergence, Rhat = 1).
 </code></pre></div></div>
 
+<h3 id="shiny-stan">Shiny Stan</h3>
+
+<p>A wonderful tool for inspecting our model fit is Shiny Stan. It performs many of
+the checks we performed before plus many more in an interactive browser window.
+To open the program, type the following on the console line:</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">launch_shinystan</span><span class="p">(</span><span class="n">fit</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="predictions">Predictions</h3>
+
+<p>To make these marginal effect estimates easier to interpret, we’ll produce
+posterior predictions again. One thing that’s very easy to do with a model like
+this is make predictions even for groups that aren’t observed in the data. To do
+that, we will make a design matrix that includes all possible combinations of
+the demographic characteristics we modeled.</p>
+
+<p>After that, we’ll produce a plot showing the posterior predictions for each
+group.</p>
+
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## ---------------------------</span><span class="w">
 </span><span class="c1">## posterior predictions</span><span class="w">
 </span><span class="c1">## ---------------------------</span><span class="w">
@@ -556,6 +755,14 @@ our computers’ multiple cores with <code class="language-plaintext highlighter
 </span></code></pre></div></div>
 
 <p><img src="../figures/multi_reg_predict_fig-1.png" width="100%" /></p>
+
+<h3 id="compare-to-frequentist-analysis">Compare to frequentist analysis</h3>
+
+<p>Inevitably, we (or a reviewer!) will want a comparison with a frequentist model.
+I will tell you know that this is a fool’s errand full of philosophical,
+statistical, and computational pitfalls and incommensurabilities. But
+nonetheless, let’s see how this sort of analysis might look in a frequentist
+model (as close as we can approximate anyway).</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## -----------------------------------------------------------------------------</span><span class="w">
 </span><span class="c1">## quick comparison to frequentist approach</span><span class="w">
@@ -739,6 +946,41 @@ our computers’ multiple cores with <code class="language-plaintext highlighter
 
 <p><img src="../figures/compare_fig-1.png" width="100%" /></p>
 
+<p>With this quick comparison, we can see a number of weaknesses of the frequentist
+approach:</p>
+
+<ul>
+  <li>95% confidence intervals are wider than Bayesian 95% credible intervals</li>
+  <li>some 95% CIs cross 0 and 100%</li>
+  <li>some groups don’t have estimates at all</li>
+</ul>
+
+<p>Of course, a frequentist might (rightfully!) counter:</p>
+
+<ul>
+  <li>we didn’t run a frequentist HLM</li>
+  <li>our Bayesian estimates, especially for small groups, may be biased</li>
+</ul>
+
+<p>Unfortunately, there isn’t a single determining factor that will tell us that
+one approach is better. That said, if one wants to provide estimates (with
+estimates of error) for small groups, a Bayesian approach provides options that
+a frequentist does not.</p>
+
+<h2 id="comparing-groups">Comparing groups</h2>
+
+<p>Often in the course of analyses that investigates heterogeneity, we want
+estimates in the difference in effect between groups. In a frequentist analysis,
+we’ll often look to see if parameters are statistically different from one
+another (for example, their CIs don’t overlap) and then report the difference
+between the estimates. However, this is a bit of a statistical fudge because our
+estimates of error aren’t directly related to that difference. We can say pretty
+confidently that they <em>are</em> different, but with less confidence about the <em>size</em>
+of that difference.</p>
+
+<p>With Bayesian posteriors, we can simply subtract one from the other to create a
+posterior distribution of the difference.</p>
+
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## -----------------------------------------------------------------------------</span><span class="w">
 </span><span class="c1">## comparison</span><span class="w">
 </span><span class="c1">## -----------------------------------------------------------------------------</span><span class="w">
@@ -790,6 +1032,11 @@ our computers’ multiple cores with <code class="language-plaintext highlighter
 </span></code></pre></div></div>
 
 <p><img src="../figures/plot_difference-1.png" width="100%" /></p>
+
+<p>We can see that the difference in enrollment rates among white men below the
+185% poverty line are about 29 percentage points less likely to enroll in
+college than their white male peers above the poverty line. With this approach,
+we can put a range on this estimate of about 25 to 33 percentage points.</p>
 
 
 
