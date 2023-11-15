@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<meta name="viewport" content="width=device-width">
+<link rel="stylesheet" href="/ashe_bayes/assets/css/style.css">
+<link rel="stylesheet" href="/ashe_bayes/assets/css/syntax_default.css">
+<!-- <link rel="shortcut icon" type="image/png" href="/ashe_bayes/assets/img/favicon.ico"> -->
+<link crossorigin="anonymous" media="all" integrity="sha512-uhAd27cNiLn0VE2GVEVUN8D5zW0o7s0QTnCGMnJZkL2HqN9/LwHDi4ndTPJH0upUQHYl/8QF6cwbOYp/KIzlJQ==" rel="stylesheet" href="https://github.githubassets.com/assets/github-be4e45349cf088df7a6636f437c0a167.css" />
+<script defer src="/ashe_bayes/assets/js/all.min.js"></script>
+<!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+</script>
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+
+<title>A Gentle Introduction to Bayesian Analysis with Applications to QuantCrit</title>
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>A Gentle Introduction to Bayesian Analysis with Applications to QuantCrit<a href="https://github.com/btskinner/ashe_bayes" class="iconlink">
+	      <i class="fab fa-github fa-sm"></i></a></h1>
+	<h2 class="thin"></h2>
+	<p>A workshop to introduce quantitatively-trained researchers to the Bayesian
+paradigm with applications to QuantCrit
+</p>
+	<!-- side / top bar menu -->
+	<h2 class="thin">
+	  <a href="/ashe_bayes/">Welcome</a></br>
+    <a href="/ashe_bayes/setup/">Setup</a></br>
+    <a href="/ashe_bayes/modules/">Modules</a></br>
+    <a href="/ashe_bayes/resources/">Resources</a></br>
+	  <a href="/ashe_bayes/about/">About</a></br>
+	</h2>
+      </header>
+
+      <section>
+	<h1>Analytic Examples</h1>
+	
+
+	
+<p>
+  
+  <a href="/ashe_bayes/assets/pdf/analysis.pdf"
+     class="iconlink" download title="Get PDF of modules">
+  <i class="far fa-file-pdf fa-2x"></i>
+  </a>
+  
+  &nbsp;&nbsp;
+  
+  <a href="/ashe_bayes/scripts/analysis.R"
+     class="iconlink" download title="Get script">
+    <i class="fas fa-code fa-2x"></i>
+  </a>
+  &nbsp;&nbsp;
+  
+  
+  
+  
+  
+  <a href="/ashe_bayes/data/college.RDS"
+     class="iconlink" download title="Get data">
+    <i class="fas fa-database fa-2x"></i>
+  </a>
+  &nbsp;&nbsp;
+  
+  
+</p>
+
+
+<p>In this part of the workshop, we’ll work through a couple of examples of a
+Bayesian analysis. The first will be a very simple regression and the second a
+more complex regression with deep interactions. We’ll also consider a few model
+checks and ways of presenting the results.</p>
+
+<h2 id="libraries">Libraries</h2>
+
+<p>We’ll load a few libraries for our analysis:</p>
+
+<ul>
+  <li><em>tidyverse</em>: useful for data wrangling</li>
+  <li><em>brms</em>: our main Bayesian regression tool</li>
+  <li><em>bayesplot</em>: support library for plotting Bayesian results</li>
+  <li><em>tidybayes</em>: support library for wrangling/plotting Bayesian results</li>
+  <li><em>patchwork</em>: combine plots</li>
+  <li><em>shinystan</em>: interactive inspection of Bayesian objects</li>
+  <li><em>parallel</em>: take advantage of multiple cores</li>
+</ul>
+
+<p>If you don’t have these libraries, you can install them quickly with the
+following:</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">install.packages</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="s2">"tidyverse"</span><span class="p">,</span><span class="w"> </span><span class="s2">"brms"</span><span class="p">,</span><span class="w"> </span><span class="s2">"bayesplot"</span><span class="p">,</span><span class="w"> </span><span class="s2">"tidybayes"</span><span class="p">,</span><span class="w"> </span><span class="s2">"patchwork"</span><span class="p">,</span><span class="w"> </span><span class="s2">"shinystan"</span><span class="p">,</span><span class="w"> </span><span class="s2">"parallel"</span><span class="p">),</span><span class="w"> </span><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span><span class="w">
+
+</span></code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## ---------------------------</span><span class="w">
+</span><span class="c1">## libraries</span><span class="w">
+</span><span class="c1">## ---------------------------</span><span class="w">
+
+</span><span class="n">libs</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s2">"tidyverse"</span><span class="p">,</span><span class="w"> </span><span class="s2">"brms"</span><span class="p">,</span><span class="w"> </span><span class="s2">"bayesplot"</span><span class="p">,</span><span class="w"> </span><span class="s2">"tidybayes"</span><span class="p">,</span><span class="w"> </span><span class="s2">"patchwork"</span><span class="p">,</span><span class="s2">"shinystan"</span><span class="p">)</span><span class="w">
+</span><span class="n">sapply</span><span class="p">(</span><span class="n">libs</span><span class="p">,</span><span class="w"> </span><span class="n">require</span><span class="p">,</span><span class="w"> </span><span class="n">character.only</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Loading required package: tidyverse
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+## ✔ dplyr     1.1.3     ✔ readr     2.1.4
+## ✔ forcats   1.0.0     ✔ stringr   1.5.0
+## ✔ ggplot2   3.4.4     ✔ tibble    3.2.1
+## ✔ lubridate 1.9.3     ✔ tidyr     1.3.0
+## ✔ purrr     1.0.2     
+## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()
+## ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors
+## Loading required package: brms
+## 
+## Loading required package: Rcpp
+## 
+## Loading 'brms' package (version 2.20.4). Useful instructions
+## can be found by typing help('brms'). A more detailed introduction
+## to the package is available through vignette('brms_overview').
+## 
+## 
+## Attaching package: 'brms'
+## 
+## 
+## The following object is masked from 'package:stats':
+## 
+##     ar
+## 
+## 
+## Loading required package: bayesplot
+## 
+## This is bayesplot version 1.10.0
+## 
+## - Online documentation and vignettes at mc-stan.org/bayesplot
+## 
+## - bayesplot theme set to bayesplot::theme_default()
+## 
+##    * Does _not_ affect other ggplot2 plots
+## 
+##    * See ?bayesplot_theme_set for details on theme setting
+## 
+## 
+## Attaching package: 'bayesplot'
+## 
+## 
+## The following object is masked from 'package:brms':
+## 
+##     rhat
+## 
+## 
+## Loading required package: tidybayes
+## 
+## 
+## Attaching package: 'tidybayes'
+## 
+## 
+## The following objects are masked from 'package:brms':
+## 
+##     dstudent_t, pstudent_t, qstudent_t, rstudent_t
+## 
+## 
+## Loading required package: patchwork
+## 
+## Loading required package: shinystan
+## 
+## Loading required package: shiny
+## 
+## 
+## This is shinystan version 2.6.0
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## tidyverse      brms bayesplot tidybayes patchwork shinystan 
+##      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE
+</code></pre></div></div>
+
+<h2 id="settings">Settings</h2>
+
+<p>We have a couple of settings that will help us. First, we’ll take advantage of
+our computers’ multiple cores with <code class="language-plaintext highlighter-rouge">options(mc.cores=parallel::detectCores())</code>.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## ---------------------------</span><span class="w">
+</span><span class="c1">## settings</span><span class="w">
+</span><span class="c1">## ---------------------------</span><span class="w">
+
+</span><span class="c1">## set number of cores to use to speed things up</span><span class="w">
+</span><span class="n">options</span><span class="p">(</span><span class="n">mc.cores</span><span class="o">=</span><span class="n">parallel</span><span class="o">::</span><span class="n">detectCores</span><span class="p">())</span><span class="w">
+
+</span><span class="c1">## set a seed so things stay the same</span><span class="w">
+</span><span class="n">my_seed</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">20231118</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## ---------------------------</span><span class="w">
+</span><span class="c1">## input</span><span class="w">
+</span><span class="c1">## ---------------------------</span><span class="w">
+
+</span><span class="n">df</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">readRDS</span><span class="p">(</span><span class="s2">"college.RDS"</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## ---------------------------</span><span class="w">
+</span><span class="c1">## show data set</span><span class="w">
+</span><span class="c1">## ---------------------------</span><span class="w">
+
+</span><span class="n">df</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## # A tibble: 17,202 × 7
+##       id gender raceeth birthyr pov185 region    college
+##    &lt;int&gt; &lt;chr&gt;  &lt;chr&gt;     &lt;int&gt; &lt;chr&gt;  &lt;chr&gt;       &lt;dbl&gt;
+##  1 10001 male   white      1995 above  midwest         1
+##  2 10002 female white      1995 below  northeast       1
+##  3 10003 female blackaa    1995 above  west            1
+##  4 10004 female white      1995 above  south           0
+##  5 10005 male   white      1995 above  south           0
+##  6 10007 female white      1994 above  northeast       1
+##  7 10008 male   white      1994 above  northeast       1
+##  8 10009 male   white      1995 above  south           1
+##  9 10012 female white      1995 above  midwest         1
+## 10 10013 male   white      1995 above  south           1
+## # ℹ 17,192 more rows
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## -----------------------------------------------------------------------------</span><span class="w">
+</span><span class="c1">## simple regression: intercept only (average college-going rate)</span><span class="w">
+</span><span class="c1">## -----------------------------------------------------------------------------</span><span class="w">
+
+</span><span class="c1">## likelihood of going to college</span><span class="w">
+</span><span class="n">fit</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">brm</span><span class="p">(</span><span class="n">college</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w">
+           </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df</span><span class="p">,</span><span class="w">
+           </span><span class="n">family</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bernoulli</span><span class="p">(</span><span class="s2">"logit"</span><span class="p">),</span><span class="w">
+           </span><span class="n">seed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">my_seed</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## show summary stats</span><span class="w">
+</span><span class="n">summary</span><span class="p">(</span><span class="n">fit</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##  Family: bernoulli 
+##   Links: mu = logit 
+## Formula: college ~ 1 
+##    Data: df (Number of observations: 17202) 
+##   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
+##          total post-warmup draws = 4000
+## 
+## Population-Level Effects: 
+##           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## Intercept     1.12      0.02     1.08     1.15 1.00     1534     1792
+## 
+## Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
+## and Tail_ESS are effective sample size measures, and Rhat is the potential
+## scale reduction factor on split chains (at convergence, Rhat = 1).
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## show distribution of intercept (our main parameter)</span><span class="w">
+</span><span class="n">mcmc_areas</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span><span class="w"> </span><span class="n">prob</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.95</span><span class="p">,</span><span class="w"> </span><span class="n">pars</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"b_Intercept"</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">labs</span><span class="p">(</span><span class="w">
+    </span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Posterior distribution (log scale)"</span><span class="p">,</span><span class="w">
+    </span><span class="n">subtitle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"with median and 95% interval"</span><span class="w">
+  </span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../figures/plot_simple_reg_logit-1.png" width="100%" /></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## helper function: inverse logit</span><span class="w">
+</span><span class="n">inv_logit</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="k">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nf">exp</span><span class="p">(</span><span class="o">-</span><span class="nf">log</span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nf">exp</span><span class="p">(</span><span class="o">-</span><span class="n">x</span><span class="p">)))</span><span class="w"> </span><span class="p">}</span><span class="w">
+
+</span><span class="c1">## show distribution of transformed intercept (our main parameter)</span><span class="w">
+</span><span class="c1">## using helper function</span><span class="w">
+</span><span class="n">mcmc_areas</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span><span class="w"> </span><span class="n">prob</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.95</span><span class="p">,</span><span class="w"> </span><span class="n">pars</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"b_Intercept"</span><span class="p">,</span><span class="w">
+           </span><span class="n">transformation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="s2">"b_Intercept"</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">inv_logit</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">labs</span><span class="p">(</span><span class="w">
+    </span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Posterior distribution (probability)"</span><span class="p">,</span><span class="w">
+    </span><span class="n">subtitle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"with median and 95% interval; prior: student_t(0,3,2.5)"</span><span class="w">
+  </span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../figures/plot_simple_reg_prob-1.png" width="100%" /></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## ---------------------------</span><span class="w">
+</span><span class="c1">## check prior</span><span class="w">
+</span><span class="c1">## ---------------------------</span><span class="w">
+
+</span><span class="c1">## show prior from first model</span><span class="w">
+</span><span class="n">prior_summary</span><span class="p">(</span><span class="n">fit</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Intercept ~ student_t(3, 0, 2.5)
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## change to normal prior for comparison</span><span class="w">
+</span><span class="n">fit</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">brm</span><span class="p">(</span><span class="n">college</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w">
+           </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df</span><span class="p">,</span><span class="w">
+           </span><span class="n">family</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bernoulli</span><span class="p">(</span><span class="s2">"logit"</span><span class="p">),</span><span class="w">
+           </span><span class="n">seed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">my_seed</span><span class="p">,</span><span class="w">
+           </span><span class="n">prior</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">set_prior</span><span class="p">(</span><span class="s2">"normal(0,20)"</span><span class="p">,</span><span class="w"> </span><span class="n">class</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Intercept"</span><span class="p">))</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Compiling Stan program...
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Start sampling
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## check prior</span><span class="w">
+</span><span class="n">prior_summary</span><span class="p">(</span><span class="n">fit</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Intercept ~ normal(0,20)
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## show summary stats</span><span class="w">
+</span><span class="n">summary</span><span class="p">(</span><span class="n">fit</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##  Family: bernoulli 
+##   Links: mu = logit 
+## Formula: college ~ 1 
+##    Data: df (Number of observations: 17202) 
+##   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
+##          total post-warmup draws = 4000
+## 
+## Population-Level Effects: 
+##           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## Intercept     1.12      0.02     1.08     1.15 1.00     1498     2192
+## 
+## Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
+## and Tail_ESS are effective sample size measures, and Rhat is the potential
+## scale reduction factor on split chains (at convergence, Rhat = 1).
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## show distribution of transformed intercept (our main parameter)</span><span class="w">
+</span><span class="c1">## using helper function</span><span class="w">
+</span><span class="n">mcmc_areas</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span><span class="w"> </span><span class="n">prob</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.95</span><span class="p">,</span><span class="w"> </span><span class="n">pars</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"b_Intercept"</span><span class="p">,</span><span class="w">
+           </span><span class="n">transformation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="s2">"b_Intercept"</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">inv_logit</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">labs</span><span class="p">(</span><span class="w">
+    </span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Posterior distribution (probability)"</span><span class="p">,</span><span class="w">
+    </span><span class="n">subtitle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"with median and 95% interval; prior: normal(0,20)"</span><span class="p">,</span><span class="w">
+  </span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../figures/check_prior-1.png" width="100%" /></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## show trace of chains for intercept (our main parameter)</span><span class="w">
+</span><span class="n">color_scheme_set</span><span class="p">(</span><span class="s2">"mix-blue-pink"</span><span class="p">)</span><span class="w">
+</span><span class="n">mcmc_trace</span><span class="p">(</span><span class="n">fit</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">as_draws</span><span class="p">(</span><span class="n">inc_warmup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">),</span><span class="w">
+           </span><span class="n">pars</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"b_Intercept"</span><span class="p">,</span><span class="w"> </span><span class="n">n_warmup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1000</span><span class="p">,</span><span class="w">
+           </span><span class="n">window</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="m">50</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">labs</span><span class="p">(</span><span class="w">
+    </span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Trace of posterior chains"</span><span class="p">,</span><span class="w">
+    </span><span class="n">subtitle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Draws: 0 to 50"</span><span class="w">
+  </span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../figures/trace_simple_reg_1-1.png" width="100%" /></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## show trace of chains for intercept (our main parameter)</span><span class="w">
+</span><span class="n">color_scheme_set</span><span class="p">(</span><span class="s2">"mix-blue-pink"</span><span class="p">)</span><span class="w">
+</span><span class="n">mcmc_trace</span><span class="p">(</span><span class="n">fit</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">as_draws</span><span class="p">(</span><span class="n">inc_warmup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">),</span><span class="w">
+           </span><span class="n">pars</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"b_Intercept"</span><span class="p">,</span><span class="w"> </span><span class="n">n_warmup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1000</span><span class="p">,</span><span class="w">
+           </span><span class="n">window</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">500</span><span class="p">,</span><span class="w"> </span><span class="m">2000</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">labs</span><span class="p">(</span><span class="w">
+    </span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Trace of posterior chains"</span><span class="p">,</span><span class="w">
+    </span><span class="n">subtitle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Draws: 500 to 2000"</span><span class="w">
+  </span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../figures/trace_simple_reg_2-1.png" width="100%" /></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## ---------------------------</span><span class="w">
+</span><span class="c1">## posterior predictive check</span><span class="w">
+</span><span class="c1">## ---------------------------</span><span class="w">
+
+</span><span class="c1">## plot our posterior predictive values against the college-going rate</span><span class="w">
+</span><span class="c1">## that is observed in the data</span><span class="w">
+</span><span class="n">ppc_stat</span><span class="p">(</span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">pull</span><span class="p">(</span><span class="n">college</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nf">c</span><span class="p">(),</span><span class="w">
+         </span><span class="n">yrep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">posterior_epred</span><span class="p">(</span><span class="n">fit</span><span class="p">),</span><span class="w">
+         </span><span class="n">stat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mean</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+</code></pre></div></div>
+
+<p><img src="../figures/pp_check-1.png" width="100%" /></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## -----------------------------------------------------------------------------</span><span class="w">
+</span><span class="c1">## speed up trick</span><span class="w">
+</span><span class="c1">## -----------------------------------------------------------------------------</span><span class="w">
+
+</span><span class="c1">## since we're using categorical variables (rather than continuous variables),</span><span class="w">
+</span><span class="c1">## collapse binary data (bernoulli) into smaller data set of successes/trials</span><span class="w">
+</span><span class="c1">## (binomial) to take advantage of sufficient statistics</span><span class="w">
+</span><span class="n">df_tmp</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">df</span><span class="w"> </span><span class="o">|&gt;</span><span class="w">
+  </span><span class="n">summarise</span><span class="p">(</span><span class="n">college</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">college</span><span class="p">),</span><span class="w">
+            </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="p">())</span><span class="w">
+
+</span><span class="c1">## likelihood of going to college using binomial</span><span class="w">
+</span><span class="n">fit</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">brm</span><span class="p">(</span><span class="n">college</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">trials</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w">
+           </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df_tmp</span><span class="p">,</span><span class="w">
+           </span><span class="n">family</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">binomial</span><span class="p">(</span><span class="s2">"logit"</span><span class="p">),</span><span class="w">
+           </span><span class="n">seed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">my_seed</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Compiling Stan program...
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Start sampling
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## show summary stats</span><span class="w">
+</span><span class="n">summary</span><span class="p">(</span><span class="n">fit</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##  Family: binomial 
+##   Links: mu = logit 
+## Formula: college | trials(n) ~ 1 
+##    Data: df_tmp (Number of observations: 1) 
+##   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
+##          total post-warmup draws = 4000
+## 
+## Population-Level Effects: 
+##           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## Intercept     1.12      0.02     1.08     1.15 1.00     1533     2023
+## 
+## Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
+## and Tail_ESS are effective sample size measures, and Rhat is the potential
+## scale reduction factor on split chains (at convergence, Rhat = 1).
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## -----------------------------------------------------------------------------</span><span class="w">
+</span><span class="c1">## multiple regression across groups</span><span class="w">
+</span><span class="c1">## -----------------------------------------------------------------------------</span><span class="w">
+
+</span><span class="c1">## collapse into groups of race/ethnicity by gender by poverty level</span><span class="w">
+</span><span class="n">df_tmp</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">df</span><span class="w"> </span><span class="o">|&gt;</span><span class="w">
+  </span><span class="n">group_by</span><span class="p">(</span><span class="n">raceeth</span><span class="p">,</span><span class="w"> </span><span class="n">gender</span><span class="p">,</span><span class="w"> </span><span class="n">pov185</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w">
+  </span><span class="n">summarise</span><span class="p">(</span><span class="n">college</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">college</span><span class="p">),</span><span class="w">
+            </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="p">(),</span><span class="w">
+            </span><span class="n">.groups</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"drop"</span><span class="p">)</span><span class="w">
+
+</span><span class="c1">## likelihood of going to college using binomial</span><span class="w">
+</span><span class="n">fit</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">brm</span><span class="p">(</span><span class="n">college</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">trials</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="n">raceeth</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">gender</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">pov185</span><span class="w"> </span><span class="o">+</span><span class="w">
+             </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">raceeth</span><span class="o">:</span><span class="n">gender</span><span class="o">:</span><span class="n">pov185</span><span class="p">),</span><span class="w">
+           </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df_tmp</span><span class="p">,</span><span class="w">
+           </span><span class="n">family</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">binomial</span><span class="p">(</span><span class="s2">"logit"</span><span class="p">),</span><span class="w">
+           </span><span class="n">seed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">my_seed</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Compiling Stan program...
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Start sampling
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## show summary stats</span><span class="w">
+</span><span class="n">summary</span><span class="p">(</span><span class="n">fit</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##  Family: binomial 
+##   Links: mu = logit 
+## Formula: college | trials(n) ~ raceeth + gender + pov185 + (1 | raceeth:gender:pov185) 
+##    Data: df_tmp (Number of observations: 52) 
+##   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
+##          total post-warmup draws = 4000
+## 
+## Group-Level Effects: 
+## ~raceeth:gender:pov185 (Number of levels: 52) 
+##               Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## sd(Intercept)     0.11      0.04     0.04     0.18 1.00      984      649
+## 
+## Population-Level Effects: 
+##                Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## Intercept          1.46      0.21     1.03     1.89 1.01      717     1389
+## raceethasian       1.75      0.23     1.30     2.21 1.00      785     1665
+## raceethblackaa     0.47      0.22     0.05     0.91 1.00      769     1481
+## raceethhispnr      0.40      0.25    -0.09     0.91 1.00      913     1866
+## raceethhisprs      0.48      0.22     0.05     0.91 1.01      697     1508
+## raceethmoretor     0.59      0.22     0.15     1.03 1.00      759     1412
+## raceethnhpi        0.27      0.35    -0.41     0.99 1.00     1379     2329
+## raceethunknown     1.00      0.25     0.52     1.48 1.00      904     1684
+## raceethwhite       0.50      0.22     0.07     0.93 1.01      702     1532
+## gendermale        -0.48      0.06    -0.59    -0.37 1.00     2653     2620
+## pov185below       -1.21      0.08    -1.35    -1.06 1.00     1992     2762
+## pov185unknown     -1.30      0.08    -1.44    -1.14 1.00     1869     2048
+## 
+## Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
+## and Tail_ESS are effective sample size measures, and Rhat is the potential
+## scale reduction factor on split chains (at convergence, Rhat = 1).
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## ---------------------------</span><span class="w">
+</span><span class="c1">## posterior predictions</span><span class="w">
+</span><span class="c1">## ---------------------------</span><span class="w">
+
+</span><span class="c1">## create a design matrix (data frame) of all possible groups in our model</span><span class="w">
+</span><span class="n">df_design</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">expand.grid</span><span class="p">(</span><span class="n">raceeth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">distinct</span><span class="p">(</span><span class="n">raceeth</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">pull</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nf">c</span><span class="p">(),</span><span class="w">
+                         </span><span class="n">gender</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">distinct</span><span class="p">(</span><span class="n">gender</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">pull</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nf">c</span><span class="p">(),</span><span class="w">
+                         </span><span class="n">pov185</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">distinct</span><span class="p">(</span><span class="n">pov185</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">pull</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nf">c</span><span class="p">(),</span><span class="w">
+                         </span><span class="n">stringsAsFactors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w">
+  </span><span class="n">as_tibble</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span><span class="w">
+  </span><span class="n">arrange</span><span class="p">(</span><span class="n">raceeth</span><span class="p">,</span><span class="w"> </span><span class="n">gender</span><span class="p">,</span><span class="w"> </span><span class="n">pov185</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w">
+  </span><span class="n">mutate</span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">100</span><span class="p">,</span><span class="w">
+         </span><span class="n">group</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">paste</span><span class="p">(</span><span class="n">raceeth</span><span class="p">,</span><span class="w"> </span><span class="n">gender</span><span class="p">,</span><span class="w"> </span><span class="n">pov185</span><span class="p">,</span><span class="w"> </span><span class="n">sep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"_"</span><span class="p">))</span><span class="w">
+
+</span><span class="c1">## get posterior predictions but in long form that's better for plotting</span><span class="w">
+</span><span class="n">pp</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">df_design</span><span class="w"> </span><span class="o">|&gt;</span><span class="w">
+  </span><span class="n">add_epred_draws</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span><span class="w">
+                  </span><span class="n">ndraws</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">500</span><span class="p">,</span><span class="w">
+                  </span><span class="n">allow_new_levels</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span><span class="w">
+
+</span><span class="c1">## compute mean posterior by group to get order for plot</span><span class="w">
+</span><span class="n">pp_mean</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pp</span><span class="w"> </span><span class="o">|&gt;</span><span class="w">
+  </span><span class="n">summarise</span><span class="p">(</span><span class="n">pp_mean</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mean</span><span class="p">(</span><span class="n">.epred</span><span class="p">),</span><span class="w">
+            </span><span class="n">.groups</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"drop"</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w">
+  </span><span class="n">arrange</span><span class="p">(</span><span class="n">pp_mean</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w">
+  </span><span class="n">mutate</span><span class="p">(</span><span class="n">plot_index</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">row_number</span><span class="p">(),</span><span class="w">
+         </span><span class="n">plot_index</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">factor</span><span class="p">(</span><span class="n">plot_index</span><span class="p">,</span><span class="w">
+                             </span><span class="n">levels</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">plot_index</span><span class="p">,</span><span class="w">
+                             </span><span class="n">labels</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">group</span><span class="p">))</span><span class="w"> </span><span class="o">|&gt;</span><span class="w">
+  </span><span class="n">select</span><span class="p">(</span><span class="n">group</span><span class="p">,</span><span class="w"> </span><span class="n">pp_mean</span><span class="p">,</span><span class="w"> </span><span class="n">plot_index</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## join means back to main pp tibble and plot densities for each group</span><span class="w">
+</span><span class="n">bayes_g</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pp</span><span class="w"> </span><span class="o">|&gt;</span><span class="w">
+  </span><span class="n">left_join</span><span class="p">(</span><span class="n">pp_mean</span><span class="p">,</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"group"</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w">
+  </span><span class="n">ggplot</span><span class="p">(</span><span class="n">aes</span><span class="p">(</span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">plot_index</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">.epred</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">stat_pointinterval</span><span class="p">(</span><span class="n">.width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.95</span><span class="p">,</span><span class="w"> </span><span class="n">linewidth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.7</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">scale_x_continuous</span><span class="p">(</span><span class="n">breaks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">seq</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="m">100</span><span class="p">,</span><span class="w"> </span><span class="m">10</span><span class="p">),</span><span class="w">
+                     </span><span class="n">minor_breaks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">seq</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="m">100</span><span class="p">,</span><span class="w"> </span><span class="m">5</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">labs</span><span class="p">(</span><span class="w">
+    </span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Posterior predictive distributions of college enrollment"</span><span class="p">,</span><span class="w">
+    </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Group: race/ethnicity + gender + poverty status (185%)"</span><span class="p">,</span><span class="w">
+    </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Rate of college attendance"</span><span class="w">
+  </span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">theme_bw</span><span class="p">()</span><span class="w">
+</span><span class="n">bayes_g</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../figures/multi_reg_predict_fig-1.png" width="100%" /></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## -----------------------------------------------------------------------------</span><span class="w">
+</span><span class="c1">## quick comparison to frequentist approach</span><span class="w">
+</span><span class="c1">## -----------------------------------------------------------------------------</span><span class="w">
+
+</span><span class="c1">## fit logit model</span><span class="w">
+</span><span class="n">lm_fit</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">glm</span><span class="p">(</span><span class="n">cbind</span><span class="p">(</span><span class="n">college</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">college</span><span class="p">)</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="n">raceeth</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">gender</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">pov185</span><span class="p">,</span><span class="w">
+              </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df_tmp</span><span class="p">,</span><span class="w">
+              </span><span class="n">family</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">binomial</span><span class="p">(</span><span class="s2">"logit"</span><span class="p">))</span><span class="w">
+
+</span><span class="c1">## show summary</span><span class="w">
+</span><span class="n">summary</span><span class="p">(</span><span class="n">lm_fit</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## 
+## Call:
+## glm(formula = cbind(college, n - college) ~ raceeth * gender * 
+##     pov185, family = binomial("logit"), data = df_tmp)
+## 
+## Coefficients: (2 not defined because of singularities)
+##                                           Estimate Std. Error z value Pr(&gt;|z|)
+## (Intercept)                              2.079e+00  7.500e-01   2.773  0.00556
+## raceethasian                             1.048e+00  7.923e-01   1.323  0.18598
+## raceethblackaa                          -2.652e-01  7.674e-01  -0.346  0.72965
+## raceethhispnr                           -9.808e-01  1.377e+00  -0.712  0.47625
+## raceethhisprs                           -1.215e-01  7.628e-01  -0.159  0.87345
+## raceethmoretor                          -1.515e-01  7.657e-01  -0.198  0.84311
+## raceethnhpi                              6.931e-01  1.275e+00   0.544  0.58661
+## raceethunknown                           2.182e+01  6.648e+04   0.000  0.99974
+## raceethwhite                             3.918e-02  7.524e-01   0.052  0.95847
+## gendermale                              -1.192e+00  8.742e-01  -1.364  0.17265
+## pov185below                             -2.166e+00  8.583e-01  -2.524  0.01160
+## pov185unknown                           -1.520e+00  9.774e-01  -1.555  0.11996
+## raceethasian:gendermale                  8.133e-01  9.381e-01   0.867  0.38596
+## raceethblackaa:gendermale                8.365e-01  9.006e-01   0.929  0.35299
+## raceethhispnr:gendermale                 1.480e+00  1.650e+00   0.897  0.36979
+## raceethhisprs:gendermale                 4.404e-01  8.932e-01   0.493  0.62200
+## raceethmoretor:gendermale                7.120e-01  8.980e-01   0.793  0.42785
+## raceethnhpi:gendermale                   2.654e-01  1.487e+00   0.178  0.85841
+## raceethunknown:gendermale                7.526e-01  8.025e-01   0.938  0.34831
+## raceethwhite:gendermale                  5.916e-01  8.775e-01   0.674  0.50022
+## raceethasian:pov185below                 1.409e+00  9.413e-01   1.496  0.13453
+## raceethblackaa:pov185below               1.123e+00  8.815e-01   1.274  0.20261
+## raceethhispnr:pov185below                1.132e+00  1.483e+00   0.764  0.44512
+## raceethhisprs:pov185below                9.822e-01  8.745e-01   1.123  0.26142
+## raceethmoretor:pov185below               1.122e+00  8.851e-01   1.268  0.20490
+## raceethnhpi:pov185below                 -1.453e+00  1.508e+00  -0.964  0.33528
+## raceethunknown:pov185below              -4.614e+01  1.036e+05   0.000  0.99964
+## raceethwhite:pov185below                 6.669e-01  8.632e-01   0.773  0.43980
+## raceethasian:pov185unknown               7.653e-03  1.027e+00   0.007  0.99405
+## raceethblackaa:pov185unknown             2.307e-01  9.991e-01   0.231  0.81735
+## raceethhispnr:pov185unknown              1.250e+00  1.528e+00   0.818  0.41338
+## raceethhisprs:pov185unknown              1.244e-01  9.953e-01   0.125  0.90053
+## raceethmoretor:pov185unknown             4.557e-01  1.006e+00   0.453  0.65060
+## raceethnhpi:pov185unknown               -7.419e-01  1.597e+00  -0.465  0.64228
+## raceethunknown:pov185unknown            -2.125e+01  6.648e+04   0.000  0.99974
+## raceethwhite:pov185unknown               1.104e-01  9.823e-01   0.112  0.91055
+## gendermale:pov185below                   1.279e+00  1.058e+00   1.209  0.22683
+## gendermale:pov185unknown                 1.348e-02  1.173e+00   0.011  0.99083
+## raceethasian:gendermale:pov185below     -1.368e+00  1.174e+00  -1.165  0.24391
+## raceethblackaa:gendermale:pov185below   -1.401e+00  1.093e+00  -1.281  0.20012
+## raceethhispnr:gendermale:pov185below    -1.161e+00  1.821e+00  -0.638  0.52363
+## raceethhisprs:gendermale:pov185below    -9.009e-01  1.082e+00  -0.832  0.40522
+## raceethmoretor:gendermale:pov185below   -1.334e+00  1.100e+00  -1.213  0.22496
+## raceethnhpi:gendermale:pov185below       4.949e-01  1.856e+00   0.267  0.78974
+## raceethunknown:gendermale:pov185below           NA         NA      NA       NA
+## raceethwhite:gendermale:pov185below     -1.245e+00  1.066e+00  -1.168  0.24290
+## raceethasian:gendermale:pov185unknown    4.412e-02  1.246e+00   0.035  0.97175
+## raceethblackaa:gendermale:pov185unknown -5.135e-03  1.207e+00  -0.004  0.99661
+## raceethhispnr:gendermale:pov185unknown  -1.221e+00  1.851e+00  -0.659  0.50959
+## raceethhisprs:gendermale:pov185unknown   3.401e-01  1.201e+00   0.283  0.77710
+## raceethmoretor:gendermale:pov185unknown  2.999e-03  1.216e+00   0.002  0.99803
+## raceethnhpi:gendermale:pov185unknown    -2.907e-01  2.204e+00  -0.132  0.89508
+## raceethunknown:gendermale:pov185unknown         NA         NA      NA       NA
+## raceethwhite:gendermale:pov185unknown    1.494e-01  1.181e+00   0.127  0.89931
+##                                           
+## (Intercept)                             **
+## raceethasian                              
+## raceethblackaa                            
+## raceethhispnr                             
+## raceethhisprs                             
+## raceethmoretor                            
+## raceethnhpi                               
+## raceethunknown                            
+## raceethwhite                              
+## gendermale                                
+## pov185below                             * 
+## pov185unknown                             
+## raceethasian:gendermale                   
+## raceethblackaa:gendermale                 
+## raceethhispnr:gendermale                  
+## raceethhisprs:gendermale                  
+## raceethmoretor:gendermale                 
+## raceethnhpi:gendermale                    
+## raceethunknown:gendermale                 
+## raceethwhite:gendermale                   
+## raceethasian:pov185below                  
+## raceethblackaa:pov185below                
+## raceethhispnr:pov185below                 
+## raceethhisprs:pov185below                 
+## raceethmoretor:pov185below                
+## raceethnhpi:pov185below                   
+## raceethunknown:pov185below                
+## raceethwhite:pov185below                  
+## raceethasian:pov185unknown                
+## raceethblackaa:pov185unknown              
+## raceethhispnr:pov185unknown               
+## raceethhisprs:pov185unknown               
+## raceethmoretor:pov185unknown              
+## raceethnhpi:pov185unknown                 
+## raceethunknown:pov185unknown              
+## raceethwhite:pov185unknown                
+## gendermale:pov185below                    
+## gendermale:pov185unknown                  
+## raceethasian:gendermale:pov185below       
+## raceethblackaa:gendermale:pov185below     
+## raceethhispnr:gendermale:pov185below      
+## raceethhisprs:gendermale:pov185below      
+## raceethmoretor:gendermale:pov185below     
+## raceethnhpi:gendermale:pov185below        
+## raceethunknown:gendermale:pov185below     
+## raceethwhite:gendermale:pov185below       
+## raceethasian:gendermale:pov185unknown     
+## raceethblackaa:gendermale:pov185unknown   
+## raceethhispnr:gendermale:pov185unknown    
+## raceethhisprs:gendermale:pov185unknown    
+## raceethmoretor:gendermale:pov185unknown   
+## raceethnhpi:gendermale:pov185unknown      
+## raceethunknown:gendermale:pov185unknown   
+## raceethwhite:gendermale:pov185unknown     
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 1.6327e+03  on 51  degrees of freedom
+## Residual deviance: 2.8359e-10  on  0  degrees of freedom
+## AIC: 350.1
+## 
+## Number of Fisher Scoring iterations: 22
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## generage response predictions (meaning transform to probability scale)</span><span class="w">
+</span><span class="n">lm_pred</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">predict</span><span class="p">(</span><span class="n">lm_fit</span><span class="p">,</span><span class="w">
+                   </span><span class="n">newdata</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df_design</span><span class="p">,</span><span class="w">
+                   </span><span class="n">se.fit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">,</span><span class="w">
+                   </span><span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"response"</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in predict.lm(object, newdata, se.fit, scale = residual.scale, type =
+## if (type == : prediction from rank-deficient fit; attr(*, "non-estim") has
+## doubtful cases
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## wrangle data and join plot_index from Bayes plot so everything aligns; plot</span><span class="w">
+</span><span class="c1">## means and 95 CIs to match prior plot</span><span class="w">
+</span><span class="n">freq_g</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">tibble</span><span class="p">(</span><span class="n">group</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df_design</span><span class="o">$</span><span class="n">group</span><span class="p">,</span><span class="w">
+                 </span><span class="n">pred</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lm_pred</span><span class="o">$</span><span class="n">fit</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="m">100</span><span class="p">,</span><span class="w">
+                 </span><span class="n">se</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lm_pred</span><span class="o">$</span><span class="n">se.fit</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="m">100</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w">
+  </span><span class="n">mutate</span><span class="p">(</span><span class="n">ci95lo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pred</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">se</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">qnorm</span><span class="p">(</span><span class="m">0.025</span><span class="p">),</span><span class="w">
+         </span><span class="n">ci95hi</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pred</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">se</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">qnorm</span><span class="p">(</span><span class="m">0.975</span><span class="p">))</span><span class="w"> </span><span class="o">|&gt;</span><span class="w">
+  </span><span class="n">left_join</span><span class="p">(</span><span class="n">pp_mean</span><span class="p">,</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"group"</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w">
+  </span><span class="n">ggplot</span><span class="p">(</span><span class="n">aes</span><span class="p">(</span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">plot_index</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pred</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">geom_linerange</span><span class="p">(</span><span class="n">aes</span><span class="p">(</span><span class="n">xmin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ci95lo</span><span class="p">,</span><span class="w"> </span><span class="n">xmax</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ci95hi</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">geom_point</span><span class="p">(</span><span class="n">aes</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pred</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">scale_x_continuous</span><span class="p">(</span><span class="n">breaks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">seq</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="m">100</span><span class="p">,</span><span class="w"> </span><span class="m">10</span><span class="p">),</span><span class="w">
+                     </span><span class="n">minor_breaks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">seq</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="m">100</span><span class="p">,</span><span class="w"> </span><span class="m">5</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">annotate</span><span class="p">(</span><span class="s2">"rect"</span><span class="p">,</span><span class="w"> </span><span class="n">xmin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="kc">Inf</span><span class="p">,</span><span class="w"> </span><span class="n">xmax</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">ymin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">ymax</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">Inf</span><span class="p">,</span><span class="w"> </span><span class="n">alpha</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.1</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">annotate</span><span class="p">(</span><span class="s2">"rect"</span><span class="p">,</span><span class="w"> </span><span class="n">xmin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">100</span><span class="p">,</span><span class="w"> </span><span class="n">xmax</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">Inf</span><span class="p">,</span><span class="w"> </span><span class="n">ymin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">ymax</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">Inf</span><span class="p">,</span><span class="w"> </span><span class="n">alpha</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.1</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">labs</span><span class="p">(</span><span class="w">
+    </span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Frequentist predictions of college enrollment"</span><span class="p">,</span><span class="w">
+    </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Group: race/ethnicity + gender + poverty status (185%)"</span><span class="p">,</span><span class="w">
+    </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Rate of college attendance"</span><span class="w">
+  </span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">theme_bw</span><span class="p">()</span><span class="w">
+
+</span><span class="c1">## use patchwork to compare figures</span><span class="w">
+</span><span class="n">freq_g</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">bayes_g</span><span class="w"> </span><span class="o">&amp;</span><span class="w">
+  </span><span class="n">theme_bw</span><span class="p">(</span><span class="n">base_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">6</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../figures/compare_fig-1.png" width="100%" /></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## -----------------------------------------------------------------------------</span><span class="w">
+</span><span class="c1">## comparison</span><span class="w">
+</span><span class="c1">## -----------------------------------------------------------------------------</span><span class="w">
+
+</span><span class="c1">## filter to two group comparison</span><span class="w">
+</span><span class="n">pp_comp</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pp</span><span class="w"> </span><span class="o">|&gt;</span><span class="w">
+  </span><span class="n">filter</span><span class="p">(</span><span class="n">group</span><span class="w"> </span><span class="o">%in%</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s2">"white_male_above"</span><span class="p">,</span><span class="w"> </span><span class="s2">"white_male_below"</span><span class="p">))</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## plot two groups to make comparison clearer</span><span class="w">
+</span><span class="n">comp_g</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pp_comp</span><span class="w"> </span><span class="o">|&gt;</span><span class="w">
+  </span><span class="n">ggplot</span><span class="p">(</span><span class="n">aes</span><span class="p">(</span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">group</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">.epred</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">stat_pointinterval</span><span class="p">(</span><span class="n">.width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.95</span><span class="p">,</span><span class="w"> </span><span class="n">linewidth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.7</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">scale_x_continuous</span><span class="p">(</span><span class="n">breaks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">seq</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="m">100</span><span class="p">,</span><span class="w"> </span><span class="m">5</span><span class="p">),</span><span class="w">
+                     </span><span class="n">minor_breaks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">seq</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="m">100</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">labs</span><span class="p">(</span><span class="w">
+    </span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Posterior predictive distributions of college enrollment"</span><span class="p">,</span><span class="w">
+    </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Group: race/ethnicity + gender + poverty status (185%)"</span><span class="p">,</span><span class="w">
+    </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Rate of college attendance"</span><span class="w">
+  </span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">theme_bw</span><span class="p">()</span><span class="w">
+</span><span class="n">comp_g</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../figures/difference_fig-1.png" width="100%" /></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## wrangle data to subtract one group of predicitions from the other to get</span><span class="w">
+</span><span class="c1">## estimate of difference</span><span class="w">
+</span><span class="n">pp_diff</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">tibble</span><span class="p">(</span><span class="n">wma</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pp_comp</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">filter</span><span class="p">(</span><span class="n">group</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">"white_male_above"</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">pull</span><span class="p">(</span><span class="n">.epred</span><span class="p">),</span><span class="w">
+                  </span><span class="n">wmb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pp_comp</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">filter</span><span class="p">(</span><span class="n">group</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">"white_male_below"</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">pull</span><span class="p">(</span><span class="n">.epred</span><span class="p">),</span><span class="w">
+                  </span><span class="n">diff</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">wma</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">wmb</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## plot density of difference</span><span class="w">
+</span><span class="n">diff_g</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pp_diff</span><span class="w"> </span><span class="o">|&gt;</span><span class="w">
+  </span><span class="n">ggplot</span><span class="p">(</span><span class="n">aes</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">diff</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">geom_density</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">geom_vline</span><span class="p">(</span><span class="n">xintercept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pp_diff</span><span class="o">$</span><span class="n">diff</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">mean</span><span class="p">(),</span><span class="w"> </span><span class="n">linetype</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"dashed"</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">scale_x_continuous</span><span class="p">(</span><span class="n">breaks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">seq</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="m">100</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">),</span><span class="w">
+                     </span><span class="n">minor_breaks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">seq</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="m">100</span><span class="p">,</span><span class="w"> </span><span class="m">0.5</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w">
+   </span><span class="n">labs</span><span class="p">(</span><span class="w">
+     </span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Difference in attendance rates"</span><span class="p">,</span><span class="w">
+     </span><span class="n">subtitle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"(White, male, above 185%) - (White, male, below 185%)"</span><span class="p">,</span><span class="w">
+     </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Density"</span><span class="p">,</span><span class="w">
+     </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Percentage point difference"</span><span class="w">
+   </span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">theme_bw</span><span class="p">()</span><span class="w">
+</span><span class="n">diff_g</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../figures/plot_difference-1.png" width="100%" /></p>
+
+
+
+
+	<!-- <p> -->
+	<!--   Updated: 18 November 2023 -->
+	<!-- </p> -->
+      </section>
+      <footer>
+        <p>
+  Benjamin Skinner</br>  
+  Assistant Professor</br>
+  <a href="https://www.btskinner.io" class="iconlink" alt="Personal website">
+    <i class="fas fa-home fa-lg"></i></a> | 
+  <a href="https://github.com/btskinner" class="iconlink" alt="Github
+								profile">
+    <i class="fab fa-github fa-lg"></i></a> |
+  <a href="https://twitter.com/btskinner" class="iconlink" alt="Twitter profile">
+    <i class="fab fa-twitter fa-lg"></i></a>
+</p>
+<p>
+  <small>
+    <a href="https://pages.github.com">GitHub Pages</a> |
+    <a href="https://github.com/orderedlist/minimal">Theme</a> |
+    <a href="/ashe_bayes/releases/">Releases</a>
+  </small>
+</p>
+
+      </footer>
+    </div>
+
+    <!-- load Javascript if page requires it -->
+    
+    
+    
+
+  </body>
+</html>
