@@ -3,7 +3,7 @@ layout: default
 title: About
 ---
 
-<!-- ![]({{ site.baseurl }}/assets/img/aga.jpeg){:.centerpic} -->
+![]({{ site.baseurl }}/assets/img/aga.jpeg){:.centerpic}
 
 **Alberto Guzman-Alvarez** is a research data scientist at American Institutes of
 Research. His research focuses on developing and applying quantitative methods
@@ -18,7 +18,7 @@ student.
 [<i class="fab fa-twitter fa-lg"></i> twitter.com/AlbertoGuzAlv](https://twitter.com/AlbertoGuzAlv)  
 
 
-<!-- ![]({{ site.baseurl }}/assets/img/tb.jpg){:.centerpic} -->
+![]({{ site.baseurl }}/assets/img/tb.jpg){:.centerpic}
 
 **Taylor Burtch** is a postdoctoral scholar at Florida State University. Her
 research centers on college access and success for multiple marginalized
@@ -30,7 +30,7 @@ nuanced understandings of power and oppression in educational contexts.
 [<i class="fab fa-twitter fa-lg"></i> twitter.com/BurtchTay](https://twitter.com/BurtchTay)  
 
 
-<!-- ![]({{ site.baseurl }}/assets/img/bs.jpg){:.centerpic} -->
+![]({{ site.baseurl }}/assets/img/bs.jpg){:.centerpic}
 
 **Benjamin Skinner** is an assistant professor of higher education and policy with
 an affiliation in the Institute of Higher Education at the University of

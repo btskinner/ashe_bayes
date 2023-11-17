@@ -76,7 +76,14 @@ You will need the following R libraries for this workshop:
 Once you've installed R and RStudio, you can paste the following in the RStudio console:
 
 ```r
-install.packages(c("tidyverse","brms","haven","shinystan","tidybayes"), dependencies = TRUE)
+install.packages(c("tidyverse",
+                   "brms",
+                   "bayesplot",
+                   "tidybayes",
+                   "patchwork",
+                   "shinystan",
+                   "parallel"),
+                  dependencies = TRUE)
 ```
 
 # Final notes
