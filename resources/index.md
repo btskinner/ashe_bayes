@@ -22,11 +22,13 @@ attempt to combine Bayesian analyses and critical frameworks.
   workflow.](https://arxiv.org/abs/2011.01808) _arXiv preprint_
 - Skinner, B. T., Levy, H., and Burtch, T. (2023). [Digital redlining: the
   relevance of 20th century housing policy to 21st century broadband access and
-  education.](https://www.edworkingpapers.com/ai21-471) _Educational Policy._
+  education.](https://www.edworkingpapers.com/ai21-471) _Educational
+  Policy._ [CODE](https://github.com/btskinner/bb_holc_rep)
 - Skinner, B. T., Burtch, T., & Levy, H. (2022). [Variation in broadband access
   among undergraduate populations across the United
   States.](https://www.edworkingpapers.com/ai22-667) _Annenberg Institute at
   Brown University_, (EdWorkingPaper: 22-667).
+  [CODE](https://github.com/btskinner/bb_desc_rep)
 
 ## Software
 

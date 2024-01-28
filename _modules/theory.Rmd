@@ -152,5 +152,14 @@ Key benefits of Bayesian approach for applied QuantCrit analyses:
    aggregated owners, and participants with the purpose of supporting
    actionable, antiracist, social justice-oriented policy
 
-
+To make a point that we will return to in the next module: performing Bayesian
+analyses does not, in and of itself, mean one is working within the QuantCrit
+paradigm or any critical paradigm. Deep engagement with critical theories,
+frameworks, and positionalities is also required. We see Bayesian analyses as a
+specific set of tools that lend themselves well to a critical approach. Because
+they are less often taught in quantitatively-focused education research methods
+courses, we hope this workshop provides a short introduction. It remains up to
+the researcher, however, to interrogate these tools and the results they provide
+with same level of rigor demanded by critical frameworks of all quantitative
+approaches.
 

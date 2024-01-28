@@ -26,7 +26,21 @@ header-includes:
 In this part of the workshop, we'll work through a couple of examples of a
 Bayesian analysis. The first will be a very simple regression and the second a
 more complex regression with deep interactions. We'll also consider a few model
-checks and ways of presenting the results.
+checks and ways of presenting the results. 
+
+Because this workshop is short, we'll end up focusing more on the technical
+aspects of Bayesian analyses than critical applications. One reason for this is
+the audience. We assume that participants at the ASHE conference have more
+exposure to critical theories and approaches, on average, than Bayesian
+statistics. As comparatively fewer people discuss Bayesian statistics at our
+conference or in our field, we focus on those aspects of a large topic. It is
+our hope that a solid introduction to the technical components of Bayes will
+allow participants to connect these tools to critical approaches, both in
+discussions and their own work. We will try to model this: our examples and
+discussion throughout will attempt to connect the technical aspects of Bayesian
+statistics to potential critical uses. That said, an ideal workshop would have
+more time to cover both components and we understand that other scholars may
+have chosen to focus differently than we have.
 
 
 
@@ -68,10 +82,10 @@ sapply(libs, require, character.only = TRUE)
 
 ```
 ## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-## ✔ dplyr     1.1.3     ✔ readr     2.1.4
-## ✔ forcats   1.0.0     ✔ stringr   1.5.0
+## ✔ dplyr     1.1.4     ✔ readr     2.1.5
+## ✔ forcats   1.0.0     ✔ stringr   1.5.1
 ## ✔ ggplot2   3.4.4     ✔ tibble    3.2.1
-## ✔ lubridate 1.9.3     ✔ tidyr     1.3.0
+## ✔ lubridate 1.9.3     ✔ tidyr     1.3.1
 ## ✔ purrr     1.0.2     
 ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 ## ✖ dplyr::filter() masks stats::filter()
@@ -263,7 +277,7 @@ summary(fit)
 ## 
 ## Population-Level Effects: 
 ##           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## Intercept     1.12      0.02     1.08     1.15 1.00     1534     1792
+## Intercept     1.12      0.02     1.08     1.15 1.00     1460     2073
 ## 
 ## Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
 ## and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -607,7 +621,7 @@ summary(fit)
 ## 
 ## Population-Level Effects: 
 ##           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## Intercept     1.12      0.02     1.08     1.15 1.00     1533     2023
+## Intercept     1.12      0.02     1.08     1.15 1.00     1470     2058
 ## 
 ## Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
 ## and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -623,7 +637,9 @@ In this model, we'll interact our categorical indicators for race/ethnicity,
 gender, and poverty status. We'll include main effects for each characteristic
 individually, but also random intercept adjustments for interactions for each
 group. These random effects will be especially important for providing estimates
-for small groups.
+for small groups, which is one important aspect of QuantCrit — that we do not
+drop or overly aggregate small groups, thereby flattening heterogeneity of
+experience merely for reasons of statistical convenience. 
 
 
 
@@ -671,22 +687,22 @@ summary(fit)
 ## Group-Level Effects: 
 ## ~raceeth:gender:pov185 (Number of levels: 52) 
 ##               Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## sd(Intercept)     0.11      0.04     0.04     0.18 1.00      984      649
+## sd(Intercept)     0.11      0.04     0.04     0.18 1.00     1227     1350
 ## 
 ## Population-Level Effects: 
 ##                Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## Intercept          1.46      0.21     1.03     1.89 1.01      717     1389
-## raceethasian       1.75      0.23     1.30     2.21 1.00      785     1665
-## raceethblackaa     0.47      0.22     0.05     0.91 1.00      769     1481
-## raceethhispnr      0.40      0.25    -0.09     0.91 1.00      913     1866
-## raceethhisprs      0.48      0.22     0.05     0.91 1.01      697     1508
-## raceethmoretor     0.59      0.22     0.15     1.03 1.00      759     1412
-## raceethnhpi        0.27      0.35    -0.41     0.99 1.00     1379     2329
-## raceethunknown     1.00      0.25     0.52     1.48 1.00      904     1684
-## raceethwhite       0.50      0.22     0.07     0.93 1.01      702     1532
-## gendermale        -0.48      0.06    -0.59    -0.37 1.00     2653     2620
-## pov185below       -1.21      0.08    -1.35    -1.06 1.00     1992     2762
-## pov185unknown     -1.30      0.08    -1.44    -1.14 1.00     1869     2048
+## Intercept          1.46      0.20     1.07     1.85 1.01      897     1672
+## raceethasian       1.76      0.22     1.33     2.18 1.00      987     1770
+## raceethblackaa     0.47      0.21     0.07     0.87 1.01      895     1654
+## raceethhispnr      0.40      0.24    -0.07     0.88 1.00     1087     1751
+## raceethhisprs      0.48      0.21     0.07     0.88 1.00      883     1659
+## raceethmoretor     0.59      0.21     0.18     1.01 1.00      915     1751
+## raceethnhpi        0.26      0.35    -0.42     0.94 1.00     1734     2363
+## raceethunknown     0.99      0.23     0.54     1.45 1.00     1058     1940
+## raceethwhite       0.50      0.20     0.11     0.89 1.00      879     1621
+## gendermale        -0.48      0.06    -0.59    -0.37 1.00     3266     2836
+## pov185below       -1.21      0.07    -1.35    -1.07 1.00     2358     2897
+## pov185unknown     -1.30      0.07    -1.44    -1.15 1.00     2449     2286
 ## 
 ## Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
 ## and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -707,12 +723,15 @@ launch_shinystan(fit)
 
 To make these marginal effect estimates easier to interpret, we'll produce
 posterior predictions again. One thing that's very easy to do with a model like
-this is make predictions even for groups that aren't observed in the data. To do
-that, we will make a design matrix that includes all possible combinations of
-the demographic characteristics we modeled.
+this is make predictions --- with appropriate measures of uncertainty included
+--- even for groups that aren't observed in the data. To do that, we will make a
+design matrix that includes all possible combinations of the demographic
+characteristics we modeled. In this way, we attend to another important
+dimension of QuantCrit work: that groups have their unique experiences
+represented.
 
-After that, we'll produce a plot showing the posterior predictions for each
-group.
+After producing group-specific estimates, we'll produce a plot showing the
+posterior predictions for each.
 
 
 
@@ -992,10 +1011,27 @@ another (for example, their CIs don't overlap) and then report the difference
 between the estimates. However, this is a bit of a statistical fudge because our
 estimates of error aren't directly related to that difference. We can say pretty
 confidently that they _are_ different, but with less confidence about the _size_
-of that difference.
+of that difference. With Bayesian posteriors, we can simply subtract one from
+the other to create a posterior distribution of the difference.
 
-With Bayesian posteriors, we can simply subtract one from the other to create a
-posterior distribution of the difference. 
+We pause to note that statistical comparisons between groups are fraught. They
+have been (and sometimes still are) used to support deficit frameworks, in which
+one group is unfavorably compared to a second group that is set as a standard.
+By implication or outright statement, the first group is framed as lacking
+and/or at fault for the difference. Often, it is minoritized groups who are put
+in relation to a white standard, and differences along some dimension are
+denoted as a _gap_. Researchers must be careful not to fall into facile
+comparisons that, rather than elucidate important heterogeneity of experience,
+situate the outcomes of structural oppressions as the responsibility of
+individuals or groups.
+
+Because Ben is presenting this portion of the workshop, our example focuses on
+the difference in college enrollments between white men below and above the
+poverty line. Other groups could equally and, in the context a full analysis and
+deeper connection to a particular critical theoretical framework, more
+fruitfully be explored. We encourage participants to modify the code and check
+other potential between group differences, keeping in mind critical theories
+that might elucide rather than reify those differences.
 
 
 ```r
@@ -1059,7 +1095,32 @@ diff_g
 We can see that the difference in enrollment rates among white men below the
 185% poverty line are about 29 percentage points less likely to enroll in
 college than their white male peers above the poverty line. With this approach,
-we can put a range on this estimate of about 25 to 33 percentage points.
+we can put a range on this estimate of about 25 to 33 percentage points. This is
+an important difference in enrollment rates by income, and one that underlies
+much student aid policy. However, this comparison is only one of many potential
+comparisons and cannot be fully unpacked in the absence of theory.
+
+## Wrapping up
+
+We have flown through this introduction to Bayesian analyses. Participants and
+those following along after the workshop likely have many questions. One key
+question is: _how does this relate to QuantCrit or other critical frameworks?_
+This is a fair question because, as we said we would, we focused more on the
+technical aspects of Bayesian analysis than the critical applications. To
+repeat: a Bayesian analysis does not make one's work critical. In fact, all that
+we did today could largely be done theory-free or with a non-critical approach.
+It is the deep engagement with critical frameworks that would make the work
+critical.
+
+Our hope, at the end of the lesson, is that participants now have a better
+understanding of poorly understood quantitative framework that might be usefully
+used alongside critical frameworks in quantitative work. Bayes is not a panacea
+--- participants should rightly note this --- but it does provide alternate
+avenues for critical quantitative work that otherwise are closed through
+frequentist paradigms. At the very least, Bayes provides another viewpoint on
+quantitative work that might elucidate what a QuantCrit or critical quantitative
+scholar hopes to accomplish with their work, regardless of whether they use
+Bayes at all.
 
 
 
